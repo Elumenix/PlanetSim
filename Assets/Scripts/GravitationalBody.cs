@@ -4,21 +4,28 @@ using UnityEngine;
 
 public class GravitationalBody : MonoBehaviour
 {
-    public float mass;
+    public Rigidbody rb;
+    public Vector3 initialVelocity;
 
-    public Vector3 DirVelocity;
-    public Vector3 RotVelocity;
+    [SerializeField]
+    private Vector3 velocityView;
     
+    public Vector3 Velocity
+    {
+        get { return velocityView; }
+        //set { velocity += value; }
+    }
     
     // Start is called before the first frame update
     void Start()
     {
-        
+        rb.velocity = initialVelocity;
     }
 
     // Update is called once per frame
     void Update()
     {
-        transform.Translate(DirVelocity, Space.World);
+        //transform.Translate(DirVelocity, Space.World);
+        velocityView = rb.velocity;
     }
 }

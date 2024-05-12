@@ -8,51 +8,33 @@ public class GravityManager : MonoBehaviour
 {
     public List<GravitationalBody> planets;
     public float secondsPerRealSecond = 1;
-    private const float G = 6.67408e-17f; // Updated gravitational constant for scaling
+    private const float G = 6.67408e-11f; // Updated gravitational constant for scaling
     
     // Start is called before the first frame update
     void Start()
     {
-        // Scale doesn't seem to affect any calulations, so I'm making them easier to see
-        foreach (GravitationalBody body in planets)
-        {
-            body.transform.localScale *= 100;
-        }
+        
     }
 
     // Update is called once per frame
     void Update()
     {
-        // First step is to calculate all forces
-        Dictionary<GravitationalBody, Vector3> allForces = new Dictionary<GravitationalBody, Vector3>();
-
-        foreach (GravitationalBody body in planets)
+        for (int i = 0; i < planets.Count; i++)
         {
-            Vector3 acceleration = Vector3.zero;
-
-            foreach (GravitationalBody body2 in planets)
+            for (int j = i + 1; j < planets.Count; j++)
             {
-                // Do not be attracted to yourself
-                if (body2 == body)
-                {
-                    continue;
-                }
-                
-                Vector3 direction = body.transform.position - body2.transform.position;
-                float forceGravity = G * ((body.mass * body2.mass) / Mathf.Pow(direction.magnitude, 2));
+                GravitationalBody body1 = planets[i];
+                GravitationalBody body2 = planets[j];
 
-                // Accel vector due to gravity
-                acceleration += direction.normalized * (forceGravity * (secondsPerRealSecond * Time.deltaTime));
+                Vector3 direction = body2.transform.position - body1.transform.position;
+                float distance = direction.magnitude;
+                float forceMagnitude = G * (body1.rb.mass * body2.rb.mass) / Mathf.Pow(distance, 2);
+
+                Vector3 force = direction.normalized * forceMagnitude;
+
+                body1.rb.AddForce(force * (Time.deltaTime * secondsPerRealSecond));
+                body2.rb.AddForce(-force * (Time.deltaTime * secondsPerRealSecond)); // Apply force in opposite direction
             }
-
-            // Already delta-Timed
-            allForces[body] = acceleration;
-        }
-
-        // Update all velocities simultaneously
-        foreach (GravitationalBody body in planets)
-        {
-            body.DirVelocity += allForces[body];
         }
     }
 }
