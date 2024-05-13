@@ -228,7 +228,6 @@ GameObject:
   - component: {fileID: 635533485}
   - component: {fileID: 635533484}
   - component: {fileID: 635533483}
-  - component: {fileID: 635533488}
   m_Layer: 0
   m_Name: Sun
   m_TagString: Untagged
@@ -248,9 +247,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 265a4828eb784c9409c24f39544bc564, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rb: {fileID: 635533488}
-  initialVelocity: {x: 0, y: 0, z: 0}
-  velocityView: {x: 0, y: 0, z: 0}
+  Position:
+    x: 149600000
+    y: 0
+    z: 0
+  Velocity:
+    x: 0
+    y: 0
+    z: 0
+  Mass: 5.97e+24
+  acceleration:
+    x: 0
+    y: 0
+    z: 0
 --- !u!135 &635533484
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -331,39 +340,12 @@ Transform:
   m_GameObject: {fileID: 635533482}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 69.57, y: 69.57, z: 69.57}
+  m_LocalPosition: {x: 149600000, y: 0, z: 0}
+  m_LocalScale: {x: 4650, y: 4650, z: 4650}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!54 &635533488
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 635533482}
-  serializedVersion: 4
-  m_Mass: 1e+9
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
 --- !u!1 &1465906179
 GameObject:
   m_ObjectHideFlags: 0
@@ -377,7 +359,6 @@ GameObject:
   - component: {fileID: 1465906182}
   - component: {fileID: 1465906181}
   - component: {fileID: 1465906180}
-  - component: {fileID: 1465906185}
   m_Layer: 0
   m_Name: Earth
   m_TagString: Untagged
@@ -397,9 +378,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 265a4828eb784c9409c24f39544bc564, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rb: {fileID: 1465906185}
-  initialVelocity: {x: 0, y: 0, z: 0}
-  velocityView: {x: 0, y: 0, z: 0}
+  Position:
+    x: 0
+    y: 0
+    z: 0
+  Velocity:
+    x: 0
+    y: 0
+    z: 0
+  Mass: 0
+  acceleration:
+    x: 0
+    y: 0
+    z: 0
 --- !u!135 &1465906181
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -480,39 +471,12 @@ Transform:
   m_GameObject: {fileID: 1465906179}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 14960, y: 0, z: 0}
-  m_LocalScale: {x: 1.2756, y: 1.2756, z: 1.2756}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 6378.0005, y: 6378.0005, z: 6378.0005}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!54 &1465906185
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1465906179}
-  serializedVersion: 4
-  m_Mass: 1e+9
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
 --- !u!1 &1499750002
 GameObject:
   m_ObjectHideFlags: 0
@@ -543,7 +507,7 @@ Light:
   m_Shape: 0
   m_Color: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
   m_Intensity: 1
-  m_Range: 10
+  m_Range: 231.16
   m_SpotAngle: 30
   m_InnerSpotAngle: 21.80208
   m_CookieSize: 10
@@ -600,13 +564,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1499750002}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0.7058716, z: 0, w: 0.70833987}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalRotation: {x: 0.13485421, y: 0.6929614, z: -0.13438429, w: 0.69538456}
+  m_LocalPosition: {x: 0, y: 60.8, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 89.8, z: 0}
+  m_LocalEulerAnglesHint: {x: 21.95, y: 89.8, z: 0}
 --- !u!1 &1730625372
 GameObject:
   m_ObjectHideFlags: 0
@@ -637,10 +601,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   planets:
-  - {fileID: 635533483}
   - {fileID: 1465906180}
   - {fileID: 1932191711}
-  secondsPerRealSecond: 1
 --- !u!4 &1730625374
 Transform:
   m_ObjectHideFlags: 0
@@ -669,7 +631,6 @@ GameObject:
   - component: {fileID: 1932191713}
   - component: {fileID: 1932191712}
   - component: {fileID: 1932191711}
-  - component: {fileID: 1932191710}
   m_Layer: 0
   m_Name: Moon
   m_TagString: Untagged
@@ -677,33 +638,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!54 &1932191710
-Rigidbody:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1932191709}
-  serializedVersion: 4
-  m_Mass: 1e+9
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 0
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
 --- !u!114 &1932191711
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -716,9 +650,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 265a4828eb784c9409c24f39544bc564, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rb: {fileID: 1932191710}
-  initialVelocity: {x: 0, y: 0, z: 1}
-  velocityView: {x: 0, y: 0, z: 0}
+  Position:
+    x: 149984000
+    y: 0
+    z: 0
+  Velocity:
+    x: 0
+    y: 0
+    z: 0
+  Mass: 7.3e+22
+  acceleration:
+    x: 0
+    y: 0
+    z: 0
 --- !u!135 &1932191712
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -799,8 +743,8 @@ Transform:
   m_GameObject: {fileID: 1932191709}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 14998.4, y: 0, z: 0}
-  m_LocalScale: {x: 0.17375, y: 0.17375, z: 0.17375}
+  m_LocalPosition: {x: 149984000, y: 0, z: 0}
+  m_LocalScale: {x: -282, y: -281.9739, z: -281.9739}
   m_ConstrainProportionsScale: 1
   m_Children: []
   m_Father: {fileID: 0}
