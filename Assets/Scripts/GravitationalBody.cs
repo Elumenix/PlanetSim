@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-#if UNITY_EDITOR
 [ExecuteInEditMode]
 public class GravitationalBody : MonoBehaviour
 {
@@ -22,12 +21,16 @@ public class GravitationalBody : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //transform.Translate(DirVelocity, Space.World);
-        //velocityView = rb.velocity;
-        Velocity += acceleration;
-        Position += Velocity;
+        if (Application.isPlaying)
+        {
+            Velocity += acceleration;
+            Position += Velocity * Time.deltaTime;
+        }
+
+        // still runs in editor mode
         transform.position = new Vector3((float)Position.x, (float)Position.y, (float)Position.z);
+
+
         acceleration = Vector3d.zero;
     }
 }
-#endif
