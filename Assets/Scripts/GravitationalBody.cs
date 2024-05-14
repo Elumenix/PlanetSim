@@ -23,7 +23,7 @@ public class GravitationalBody : MonoBehaviour
     {
         if (Application.isPlaying)
         {
-            Velocity += acceleration;
+            Velocity += acceleration * Time.deltaTime;
             Position += Velocity * Time.deltaTime;
         }
 

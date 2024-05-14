@@ -868,7 +868,7 @@ MonoBehaviour:
   - {fileID: 1633547945}
   - {fileID: 1465906180}
   - {fileID: 2009411908}
-  TimeScale: 0
+  _timeScale: 0
 --- !u!4 &1730625374
 Transform:
   m_ObjectHideFlags: 0
