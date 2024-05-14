@@ -16,7 +16,8 @@ public class GravityManager : MonoBehaviour
 
     [SerializeField]
     private TimeScale _timeScale;
-    public TimeScale TimeScale
+
+    private TimeScale TimeScale
     {
         get { return _timeScale; }
     }
@@ -24,54 +25,28 @@ public class GravityManager : MonoBehaviour
     private TimeScale previousTimeScale;
     public float speed = 1;
     
-    public void SetTimeScale(TimeScale newScale)
-    {
-        if (_timeScale != newScale)
-        {
-            _timeScale = newScale;
-            G = GetGravitationalConstant(_timeScale);
-            foreach (GravitationalBody body in planets)
-            {
-                body.Velocity = ConvertVelocityToTimeScale(body.Velocity, _timeScale, newScale);
-            }
-        }
-    }
-    
     // Start is called before the first frame update
     void Start()
     {
         previousTimeScale = TimeScale;
         G = GetGravitationalConstant(TimeScale);
-
-        // All of my default values assume AU/s
-        if (TimeScale != TimeScale.second)
-        {
-            // Convert initial velocities to match time scale
-            foreach (GravitationalBody body in planets)
-            {
-                body.Velocity = ConvertVelocityToTimeScale(body.Velocity, TimeScale.second, TimeScale);
-            }
-        }
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
-        // All velocities and gravitational constant need to be immediately updated
+        // Gravitational constant has a time parameter, so it will need to be updated
         if (previousTimeScale != TimeScale)
         {
             G = GetGravitationalConstant(_timeScale);
-            foreach (GravitationalBody body in planets)
-            {
-                body.Velocity = ConvertVelocityToTimeScale(body.Velocity, previousTimeScale, TimeScale);
-            }
-
-            previousTimeScale = _timeScale;
+            previousTimeScale = TimeScale;
         }
 
+        // Should let me take numbers of a timescale that isn't one
         Time.timeScale = speed;
         
-        // Updates acceleration of all planets due to gravity
+        // Updates acceleration of all planets due to gravity : Euler part of Verlet Implementation
+        // Positions and Velocities get updated in the GravitationalBody Update Method
         for (int i = 0; i < planets.Count; i++)
         {
             for (int j = i + 1; j < planets.Count; j++)
@@ -126,44 +101,4 @@ public class GravityManager : MonoBehaviour
                 return G;
         }
     }
-
-    Vector3d ConvertVelocityToTimeScale(Vector3d velocity, TimeScale oldScale, TimeScale newScale)
-    {
-        // Convert velocity from old timescale to base units (AU per second)
-        switch (oldScale)
-        {
-            case TimeScale.minute:
-                velocity /= 60;
-                break;
-            case TimeScale.hour:
-                velocity /= 3600;
-                break;
-            case TimeScale.day:
-                velocity /= (86400);
-                break;
-            case TimeScale.year:
-                velocity /= (365.25 * 86400);
-                break;
-        }
-
-        // Convert velocity from base units to new timescale
-        switch (newScale)
-        {
-            case TimeScale.minute:
-                velocity *= 60;
-                break;
-            case TimeScale.hour:
-                velocity *= 3600;
-                break;
-            case TimeScale.day:
-                velocity *= (86400);
-                break;
-            case TimeScale.year:
-                velocity *= (365.25 * 86400);
-                break;
-        }
-
-        return velocity;
-    }
-
 }

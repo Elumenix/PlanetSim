@@ -10,21 +10,26 @@ public class GravitationalBody : MonoBehaviour
     public double Mass;
 
     [HideInInspector] public Vector3d acceleration;
+    [HideInInspector] public Vector3d previousPosition;
     
     
     // Start is called before the first frame update
     void Start()
     {
         acceleration = Vector3d.zero;
+        previousPosition = Position - Velocity * Time.deltaTime;
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
         if (Application.isPlaying)
         {
-            Velocity += acceleration * Time.deltaTime;
-            Position += Velocity * Time.deltaTime;
+            // Verlet Integration is used for more stable/accurate orbits of bodies
+            Vector3d tempPosition = Position;
+            Position = 2 * Position - previousPosition + acceleration * Time.deltaTime * Time.deltaTime;
+            Velocity = previousPosition - Position;
+            previousPosition = tempPosition;
         }
 
         // still runs in editor mode
