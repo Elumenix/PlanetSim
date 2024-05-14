@@ -50,7 +50,12 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _CellDensity: 5
+    - _CellSpeed: 3
     - _QueueControl: 0
     - _QueueOffset: 0
-    m_Colors: []
+    - _SolarFlare: 2
+    m_Colors:
+    - _BaseColor: {r: 2, g: 1.20057, b: 0.2352941, a: 0}
+    - _CellColor: {r: 1.5057069, g: 0, b: 0.53224784, a: 0}
   m_BuildTextureStacks: []
