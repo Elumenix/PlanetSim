@@ -22,6 +22,7 @@ public class GravityManager : MonoBehaviour
     }
 
     private TimeScale previousTimeScale;
+    public float speed = 1;
     
     public void SetTimeScale(TimeScale newScale)
     {
@@ -67,6 +68,8 @@ public class GravityManager : MonoBehaviour
 
             previousTimeScale = _timeScale;
         }
+
+        Time.timeScale = speed;
         
         // Updates acceleration of all planets due to gravity
         for (int i = 0; i < planets.Count; i++)
