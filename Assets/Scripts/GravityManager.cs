@@ -35,14 +35,11 @@ public class GravityManager : MonoBehaviour
         {
             foreach (GravitationalBody planet in planets)
             {
-                planet.previousPosition = planet.Position -
-                                          ConvertVelocityToTimeScale(planet.Velocity, TimeScale.second, TimeScale) *
-                                          Time.deltaTime;
+                planet.Velocity = ConvertVelocityToTimeScale(planet.Velocity, TimeScale.second, TimeScale);
             }
         }
     }
 
-    // Update is called once per frame
     void FixedUpdate()
     {
         // Gravitational constant has a time parameter, so it will need to be updated
@@ -54,16 +51,46 @@ public class GravityManager : MonoBehaviour
 
         // Should let me take numbers of a timescale that isn't one
         Time.timeScale = speed;
+        
+        
+        // Calculate initial accelerations
+        CalculateAccelerations();
 
-        // Resets at beginning of new acceleration values
+        // Save initial positions and velocities
+        List<Vector3d> initialPositions = new List<Vector3d>();
+        List<Vector3d> initialVelocities = new List<Vector3d>();
+        foreach (GravitationalBody body in planets)
+        {
+            initialPositions.Add(body.Position);
+            initialVelocities.Add(body.Velocity);
+        }
+
+        // Calculate mid-point accelerations
+        foreach (GravitationalBody body in planets)
+        {
+            body.Position += 0.5 * Time.deltaTime * body.Velocity;
+            body.Velocity += 0.5 * Time.deltaTime * body.acceleration;
+        }
+        CalculateAccelerations();
+
+        // Update positions and velocities using mid-point accelerations
+        for (int i = 0; i < planets.Count; i++)
+        {
+            GravitationalBody body = planets[i];
+            body.Position = initialPositions[i] + Time.deltaTime * body.Velocity;
+            body.Velocity = initialVelocities[i] + Time.deltaTime * body.acceleration;
+        }
+    }
+
+    void CalculateAccelerations()
+    {
+        // Reset accelerations
         foreach (GravitationalBody body in planets)
         {
             body.acceleration = Vector3d.zero;
-
         }
 
-        // Updates acceleration of all planets due to gravity : Euler part of Verlet Implementation
-        // Positions and Velocities get updated in the GravitationalBody Update Method
+        // Calculate new accelerations
         for (int i = 0; i < planets.Count; i++)
         {
             for (int j = i + 1; j < planets.Count; j++)
@@ -94,7 +121,7 @@ public class GravityManager : MonoBehaviour
         double baseG = 6.67430e-11;
 
         // Convert G to N*(AU^2)/(Earth Mass^2)
-        G = baseG * ((1.496e+11 * 1.496e+11) / 5.972e+24);
+        G = baseG * ((1.496e+11 * 1.496e+11) / 5.972e+24) / 1500;
 
         switch (scale)
         {
