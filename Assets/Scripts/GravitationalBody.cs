@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -28,14 +29,22 @@ public class GravitationalBody : MonoBehaviour
             // Verlet Integration is used for more stable/accurate orbits of bodies
             Vector3d tempPosition = Position;
             Position = 2 * Position - previousPosition + acceleration * Time.deltaTime * Time.deltaTime;
-            Velocity = previousPosition - Position;
+            Velocity =  Position - previousPosition;
             previousPosition = tempPosition;
         }
 
         // still runs in editor mode
         transform.position = new Vector3((float)Position.x, (float)Position.y, (float)Position.z);
+    }
 
-
-        acceleration = Vector3d.zero;
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.white;
+        Vector3d temp = Position + Velocity * 10000000;
+        Vector3d temp2 = Position + acceleration * 10000000;
+        Gizmos.DrawLine(new Vector3((float)Position.x, (float)Position.y, (float)Position.z), new Vector3((float)temp.x, (float)temp.y, (float)temp.z));
+        
+        Gizmos.color = Color.red;
+        Gizmos.DrawLine(new Vector3((float)Position.x, (float)Position.y, (float)Position.z), new Vector3((float)temp2.x, (float)temp2.y, (float)temp2.z));
     }
 }

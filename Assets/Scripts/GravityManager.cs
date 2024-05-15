@@ -30,6 +30,16 @@ public class GravityManager : MonoBehaviour
     {
         previousTimeScale = TimeScale;
         G = GetGravitationalConstant(TimeScale);
+
+        if (_timeScale != TimeScale.second)
+        {
+            foreach (GravitationalBody planet in planets)
+            {
+                planet.previousPosition = planet.Position -
+                                          ConvertVelocityToTimeScale(planet.Velocity, TimeScale.second, TimeScale) *
+                                          Time.deltaTime;
+            }
+        }
     }
 
     // Update is called once per frame
@@ -44,7 +54,14 @@ public class GravityManager : MonoBehaviour
 
         // Should let me take numbers of a timescale that isn't one
         Time.timeScale = speed;
-        
+
+        // Resets at beginning of new acceleration values
+        foreach (GravitationalBody body in planets)
+        {
+            body.acceleration = Vector3d.zero;
+
+        }
+
         // Updates acceleration of all planets due to gravity : Euler part of Verlet Implementation
         // Positions and Velocities get updated in the GravitationalBody Update Method
         for (int i = 0; i < planets.Count; i++)
@@ -56,14 +73,14 @@ public class GravityManager : MonoBehaviour
 
                 // I'm technically using AU for distance but that's scaled up by 1500 so everything isn't crammed together
                 // I need to scale it back down during calculations, so that gravitational constant works
-                Vector3d direction = body2.Position / 1500.0 - body1.Position / 1500.0;
-                double distance = direction.magnitude;
+                Vector3d direction = body2.Position - body1.Position;
+                double distance = direction.magnitude / 1500.0;
 
                 if (distance != 0)
                 {
                     double forceMagnitude = G * (body1.Mass * body2.Mass) / Math.Pow(distance, 2);
                     Vector3d force = direction.normalized * forceMagnitude;
-
+                    
                     body1.acceleration += (force / body1.Mass);
                     body2.acceleration += (-force / body2.Mass); // Apply force in opposite direction
                 }
@@ -100,5 +117,44 @@ public class GravityManager : MonoBehaviour
                 // Default to base G if scale is not recognized
                 return G;
         }
+    }
+    
+    Vector3d ConvertVelocityToTimeScale(Vector3d velocity, TimeScale oldScale, TimeScale newScale)
+    {
+        // Convert velocity from old timescale to base units (AU per second)
+        switch (oldScale)
+        {
+            case TimeScale.minute:
+                velocity /= 60;
+                break;
+            case TimeScale.hour:
+                velocity /= 3600;
+                break;
+            case TimeScale.day:
+                velocity /= (86400);
+                break;
+            case TimeScale.year:
+                velocity /= (365.25 * 86400);
+                break;
+        }
+
+        // Convert velocity from base units to new timescale
+        switch (newScale)
+        {
+            case TimeScale.minute:
+                velocity *= 60;
+                break;
+            case TimeScale.hour:
+                velocity *= 3600;
+                break;
+            case TimeScale.day:
+                velocity *= (86400);
+                break;
+            case TimeScale.year:
+                velocity *= (365.25 * 86400);
+                break;
+        }
+
+        return velocity;
     }
 }
