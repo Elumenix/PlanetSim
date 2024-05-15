@@ -53,32 +53,79 @@ public class GravityManager : MonoBehaviour
         Time.timeScale = speed;
         
         
-        // Calculate initial accelerations
-        CalculateAccelerations();
-
-        // Save initial positions and velocities
+        // Save initial states
         List<Vector3d> initialPositions = new List<Vector3d>();
         List<Vector3d> initialVelocities = new List<Vector3d>();
         foreach (GravitationalBody body in planets)
         {
-            initialPositions.Add(body.Position);
-            initialVelocities.Add(body.Velocity);
+            initialPositions.Add(new Vector3d(body.Position.x, body.Position.y, body.Position.z));
+            initialVelocities.Add(new Vector3d(body.Velocity.x, body.Velocity.y, body.Velocity.z));
         }
-
-        // Calculate mid-point accelerations
+        
+        // Calculate initial accelerations (k1)
+        CalculateAccelerations();
+        List<Vector3d> k1_velocities = new List<Vector3d>();
+        List<Vector3d> k1_positions = new List<Vector3d>();
         foreach (GravitationalBody body in planets)
         {
-            body.Position += 0.5 * Time.deltaTime * body.Velocity;
-            body.Velocity += 0.5 * Time.deltaTime * body.acceleration;
+            k1_velocities.Add(body.Velocity);
+            k1_positions.Add(body.acceleration);
         }
-        CalculateAccelerations();
 
-        // Update positions and velocities using mid-point accelerations
+        // Calculate mid-point accelerations (k2)
         for (int i = 0; i < planets.Count; i++)
         {
             GravitationalBody body = planets[i];
-            body.Position = initialPositions[i] + Time.deltaTime * body.Velocity;
-            body.Velocity = initialVelocities[i] + Time.deltaTime * body.acceleration;
+            body.Position = initialPositions[i] + 0.5 * Time.deltaTime * k1_velocities[i];
+            body.Velocity = initialVelocities[i] + 0.5 * Time.deltaTime * k1_positions[i];
+        }
+        CalculateAccelerations();
+        List<Vector3d> k2_velocities = new List<Vector3d>();
+        List<Vector3d> k2_positions = new List<Vector3d>();
+        foreach (GravitationalBody body in planets)
+        {
+            k2_velocities.Add(body.Velocity);
+            k2_positions.Add(body.acceleration);
+        }
+
+        // Calculate second mid-point accelerations (k3)
+        for (int i = 0; i < planets.Count; i++)
+        {
+            GravitationalBody body = planets[i];
+            body.Position = initialPositions[i] + 0.5 * Time.deltaTime * k2_velocities[i];
+            body.Velocity = initialVelocities[i] + 0.5 * Time.deltaTime * k2_positions[i];
+        }
+        CalculateAccelerations();
+        List<Vector3d> k3_velocities = new List<Vector3d>();
+        List<Vector3d> k3_positions = new List<Vector3d>();
+        foreach (GravitationalBody body in planets)
+        {
+            k3_velocities.Add(body.Velocity);
+            k3_positions.Add(body.acceleration);
+        }
+
+        // Calculate end-point accelerations (k4)
+        for (int i = 0; i < planets.Count; i++)
+        {
+            GravitationalBody body = planets[i];
+            body.Position = initialPositions[i] + Time.deltaTime * k3_velocities[i];
+            body.Velocity = initialVelocities[i] + Time.deltaTime * k3_positions[i];
+        }
+        CalculateAccelerations();
+        List<Vector3d> k4_velocities = new List<Vector3d>();
+        List<Vector3d> k4_positions = new List<Vector3d>();
+        foreach (GravitationalBody body in planets)
+        {
+            k4_velocities.Add(body.Velocity);
+            k4_positions.Add(body.acceleration);
+        }
+
+        // Update positions and velocities using RK4 method
+        for (int i = 0; i < planets.Count; i++)
+        {
+            GravitationalBody body = planets[i];
+            body.Position = initialPositions[i] + (1.0 / 6.0) * Time.deltaTime * (k1_velocities[i] + 2 * k2_velocities[i] + 2 * k3_velocities[i] + k4_velocities[i]);
+            body.Velocity = initialVelocities[i] + (1.0 / 6.0) * Time.deltaTime * (k1_positions[i] + 2 * k2_positions[i] + 2 * k3_positions[i] + k4_positions[i]);
         }
     }
 

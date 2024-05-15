@@ -703,7 +703,7 @@ MonoBehaviour:
     z: 62.661503371
   Velocity:
     x: -0.000387528802116
-    y: -0.00374515122079
+    y: -0.000374515122079
     z: 0.00000495693300433
   Mass: 0.00553
   acceleration:
@@ -1788,7 +1788,7 @@ MonoBehaviour:
   - {fileID: 531924533}
   - {fileID: 1786259732}
   - {fileID: 1078431435}
-  _timeScale: 2
+  _timeScale: 3
   speed: 1
 --- !u!4 &1730625374
 Transform:
