@@ -22,7 +22,7 @@ public class GravitationalBody : MonoBehaviour
     }
 
     // Update is called once per frame
-    void FixedUpdate()
+    void Update()
     {
         // still runs in editor mode
         transform.position = new Vector3((float)Position.x, (float)Position.y, (float)Position.z);
