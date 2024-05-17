@@ -8,6 +8,7 @@ public class GravitationalBody : MonoBehaviour
 {
     public Vector3d Position;
     public Vector3d Velocity;
+    public double RotationSpeed;
     public double Mass;
 
     [HideInInspector] public Vector3d acceleration;
@@ -18,6 +19,10 @@ public class GravitationalBody : MonoBehaviour
     void Start()
     {
         acceleration = Vector3d.zero;
+        
+        // Get it to the correct orientation
+        
+        //transform.Rotate(new Vector3(90 - Obliquity, 0));
         //previousPosition = Position - Velocity * Time.deltaTime;
     }
 
@@ -25,13 +30,13 @@ public class GravitationalBody : MonoBehaviour
     void Update()
     {
         // still runs in editor mode
-        transform.position = new Vector3((float)Position.x, (float)Position.y, (float)Position.z);
+        transform.localPosition = new Vector3((float)Position.x, (float)Position.y, (float)Position.z);
     }
 
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.white;
-        Vector3d temp = Position + Velocity * 10000000;
+        Vector3d temp = /*new Vector3d(transform.up.x, transform.up.y, transform.up.z)*/ Position + Velocity * 10000000;
         Vector3d temp2 = Position + acceleration * 10000000;
         Gizmos.DrawLine(new Vector3((float)Position.x, (float)Position.y, (float)Position.z), new Vector3((float)temp.x, (float)temp.y, (float)temp.z));
         

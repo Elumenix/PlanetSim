@@ -36,6 +36,9 @@ public class GravityManager : MonoBehaviour
             foreach (GravitationalBody planet in planets)
             {
                 planet.Velocity = ConvertVelocityToTimeScale(planet.Velocity, TimeScale.second, TimeScale);
+                Vector3d temp = new Vector3d(0, 0, planet.RotationSpeed);
+                temp = ConvertVelocityToTimeScale(temp, TimeScale.second, TimeScale);
+                planet.RotationSpeed = temp.z;
             }
         }
     }
@@ -60,6 +63,9 @@ public class GravityManager : MonoBehaviour
         {
             initialPositions.Add(new Vector3d(body.Position.x, body.Position.y, body.Position.z));
             initialVelocities.Add(new Vector3d(body.Velocity.x, body.Velocity.y, body.Velocity.z));
+            
+            // Doesn't accelerate, therefore doesn't need integration method
+            body.transform.Rotate(transform.up, (float)body.RotationSpeed * Time.deltaTime);
         }
         
         // Calculate initial accelerations (k1)
@@ -230,5 +236,44 @@ public class GravityManager : MonoBehaviour
         }
 
         return velocity;
+    }
+    
+    double ConvertRotationSpeedToTimeScale(double speed, TimeScale oldScale, TimeScale newScale)
+    {
+        // Convert speed from old timescale to base units (rad per second)
+        switch (oldScale)
+        {
+            case TimeScale.minute:
+                speed /= 60;
+                break;
+            case TimeScale.hour:
+                speed /= 3600;
+                break;
+            case TimeScale.day:
+                speed /= (86400);
+                break;
+            case TimeScale.year:
+                speed /= (365.25 * 86400);
+                break;
+        }
+
+        // Convert speed from base units to new timescale
+        switch (newScale)
+        {
+            case TimeScale.minute:
+                speed *= 60;
+                break;
+            case TimeScale.hour:
+                speed *= 3600;
+                break;
+            case TimeScale.day:
+                speed *= (86400);
+                break;
+            case TimeScale.year:
+                speed *= (365.25 * 86400);
+                break;
+        }
+
+        return speed;
     }
 }
