@@ -17,7 +17,7 @@ public class GravityManager : MonoBehaviour
     [SerializeField]
     private TimeScale _timeScale;
 
-    private TimeScale TimeScale
+    public TimeScale TimeScale
     {
         get { return _timeScale; }
     }
