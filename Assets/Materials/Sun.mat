@@ -50,8 +50,8 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _CellDensity: 5
-    - _CellSpeed: 1
+    - _CellDensity: 30
+    - _CellSpeed: 5
     - _QueueControl: 0
     - _QueueOffset: 0
     - _SolarFlare: 2
