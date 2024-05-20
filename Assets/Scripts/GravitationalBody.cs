@@ -3,15 +3,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[ExecuteInEditMode]
+//[ExecuteInEditMode]
 public class GravitationalBody : MonoBehaviour
 {
     public Vector3d Position;
     public Vector3d Velocity;
     public double RotationSpeed;
     public double Mass;
+    public bool isPlayer = false;
 
     [HideInInspector] public Vector3d acceleration;
+    [HideInInspector] public Vector3d lastAcceleration;
+    
     //[HideInInspector] public Vector3d previousPosition;
     
     

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -140,12 +141,14 @@ public class GravityManager : MonoBehaviour
         // Reset accelerations
         foreach (GravitationalBody body in planets)
         {
+            body.lastAcceleration = body.acceleration;
             body.acceleration = Vector3d.zero;
         }
 
         // Calculate new accelerations
         for (int i = 0; i < planets.Count; i++)
         {
+            // Compare to other planets
             for (int j = i + 1; j < planets.Count; j++)
             {
                 GravitationalBody body1 = planets[i];
@@ -161,8 +164,81 @@ public class GravityManager : MonoBehaviour
                     double forceMagnitude = G * (body1.Mass * body2.Mass) / Math.Pow(distance, 2);
                     Vector3d force = direction.normalized * forceMagnitude;
                     
-                    body1.acceleration += (force / body1.Mass);
-                    body2.acceleration += (-force / body2.Mass); // Apply force in opposite direction
+                    // Apply forces if the other isn't a player
+                    if (!body2.isPlayer)
+                    {
+                        body1.acceleration += (force / body1.Mass);
+                    }
+
+                    if (!body1.isPlayer)
+                    {
+                        body2.acceleration += (-force / body2.Mass); // Apply force in opposite direction
+                    }
+                }
+            }
+            
+            // Allow player to move their ship
+            if (planets[i].isPlayer)
+            {
+                // no point doing calculations here if player isn't actively moving
+                if (!Input.anyKey)
+                {
+                    continue;
+                }
+                
+                // Speed that the players thrusters will accelerate them, dependent on time step
+                Vector3d speedVector = ConvertVelocityToTimeScale(new Vector3d(0, 0, 6.6845871223 * .000001),
+                    TimeScale.second, TimeScale);
+                double mag = speedVector.z;
+
+                PlayerCamera playerCamera = planets[i].GetComponentInChildren<PlayerCamera>();
+
+                // Move Forwards
+                if (Input.GetKey(KeyCode.W))
+                {
+                    Vector3d forwardDirection = new Vector3d(playerCamera.transform.rotation * Vector3.back);
+        
+                    planets[i].acceleration += forwardDirection * mag;
+                }
+                
+                // Move Back
+                if (Input.GetKey(KeyCode.S))
+                {
+                    Vector3d backDirection = new Vector3d(playerCamera.transform.rotation * Vector3.forward);
+        
+                    planets[i].acceleration += backDirection * mag;
+                }
+                
+                // Move Left
+                if (Input.GetKey(KeyCode.A))
+                {
+                    Vector3d leftDirection = new Vector3d(playerCamera.transform.rotation * Vector3.right);
+        
+                    planets[i].acceleration += leftDirection * mag;
+                }
+                
+                // Move Right
+                if (Input.GetKey(KeyCode.D))
+                {
+                    Vector3d rightDirection = new Vector3d(playerCamera.transform.rotation * Vector3.left);
+        
+                    planets[i].acceleration += rightDirection * mag;
+                }
+                
+                // Move Up
+                if (Input.GetKey(KeyCode.LeftShift))
+                {
+                    Vector3d upDirection = new Vector3d(playerCamera.transform.rotation * Vector3.up);
+        
+                    planets[i].acceleration += upDirection * mag;
+                }
+                
+                // Move Down
+                if (Input.GetKey(KeyCode.LeftControl))
+                {
+                    Vector3d downDirection = new Vector3d(playerCamera.transform.rotation * Vector3.down);
+        
+                    planets[i].acceleration += downDirection * mag;
                 }
             }
         }
@@ -236,44 +312,5 @@ public class GravityManager : MonoBehaviour
         }
 
         return velocity;
-    }
-    
-    double ConvertRotationSpeedToTimeScale(double speed, TimeScale oldScale, TimeScale newScale)
-    {
-        // Convert speed from old timescale to base units (rad per second)
-        switch (oldScale)
-        {
-            case TimeScale.minute:
-                speed /= 60;
-                break;
-            case TimeScale.hour:
-                speed /= 3600;
-                break;
-            case TimeScale.day:
-                speed /= (86400);
-                break;
-            case TimeScale.year:
-                speed /= (365.25 * 86400);
-                break;
-        }
-
-        // Convert speed from base units to new timescale
-        switch (newScale)
-        {
-            case TimeScale.minute:
-                speed *= 60;
-                break;
-            case TimeScale.hour:
-                speed *= 3600;
-                break;
-            case TimeScale.day:
-                speed *= (86400);
-                break;
-            case TimeScale.year:
-                speed *= (365.25 * 86400);
-                break;
-        }
-
-        return speed;
     }
 }

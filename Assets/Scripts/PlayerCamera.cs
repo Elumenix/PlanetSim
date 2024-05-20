@@ -27,9 +27,9 @@ public class PlayerCamera : MonoBehaviour
         rotationY = Quaternion.AngleAxis(transform.rotation.eulerAngles.y, Vector3.right);
     }
 
-    private void FixedUpdate()
+    void Update()
     {
-        UpdateCamera(Time.fixedDeltaTime);
+        UpdateCamera(Time.deltaTime);
     }
 
     void UpdateCamera(float deltaTime)
