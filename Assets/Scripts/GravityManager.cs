@@ -66,7 +66,7 @@ public class GravityManager : MonoBehaviour
             initialVelocities.Add(new Vector3d(body.Velocity.x, body.Velocity.y, body.Velocity.z));
             
             // Doesn't accelerate, therefore doesn't need integration method
-            body.transform.Rotate(transform.up, (float)body.RotationSpeed * Time.deltaTime);
+            body.transform.Rotate(transform.up, (float)body.RotationSpeed * Time.fixedDeltaTime);
         }
         
         // Calculate initial accelerations (k1)
@@ -83,8 +83,8 @@ public class GravityManager : MonoBehaviour
         for (int i = 0; i < planets.Count; i++)
         {
             GravitationalBody body = planets[i];
-            body.Position = initialPositions[i] + 0.5 * Time.deltaTime * k1_velocities[i];
-            body.Velocity = initialVelocities[i] + 0.5 * Time.deltaTime * k1_positions[i];
+            body.Position = initialPositions[i] + 0.5 * Time.fixedDeltaTime * k1_velocities[i];
+            body.Velocity = initialVelocities[i] + 0.5 * Time.fixedDeltaTime * k1_positions[i];
         }
         CalculateAccelerations();
         List<Vector3d> k2_velocities = new List<Vector3d>();
@@ -99,8 +99,8 @@ public class GravityManager : MonoBehaviour
         for (int i = 0; i < planets.Count; i++)
         {
             GravitationalBody body = planets[i];
-            body.Position = initialPositions[i] + 0.5 * Time.deltaTime * k2_velocities[i];
-            body.Velocity = initialVelocities[i] + 0.5 * Time.deltaTime * k2_positions[i];
+            body.Position = initialPositions[i] + 0.5 * Time.fixedDeltaTime * k2_velocities[i];
+            body.Velocity = initialVelocities[i] + 0.5 * Time.fixedDeltaTime * k2_positions[i];
         }
         CalculateAccelerations();
         List<Vector3d> k3_velocities = new List<Vector3d>();
@@ -115,8 +115,8 @@ public class GravityManager : MonoBehaviour
         for (int i = 0; i < planets.Count; i++)
         {
             GravitationalBody body = planets[i];
-            body.Position = initialPositions[i] + Time.deltaTime * k3_velocities[i];
-            body.Velocity = initialVelocities[i] + Time.deltaTime * k3_positions[i];
+            body.Position = initialPositions[i] + Time.fixedDeltaTime * k3_velocities[i];
+            body.Velocity = initialVelocities[i] + Time.fixedDeltaTime * k3_positions[i];
         }
         CalculateAccelerations();
         List<Vector3d> k4_velocities = new List<Vector3d>();
@@ -131,8 +131,8 @@ public class GravityManager : MonoBehaviour
         for (int i = 0; i < planets.Count; i++)
         {
             GravitationalBody body = planets[i];
-            body.Position = initialPositions[i] + (1.0 / 6.0) * Time.deltaTime * (k1_velocities[i] + 2 * k2_velocities[i] + 2 * k3_velocities[i] + k4_velocities[i]);
-            body.Velocity = initialVelocities[i] + (1.0 / 6.0) * Time.deltaTime * (k1_positions[i] + 2 * k2_positions[i] + 2 * k3_positions[i] + k4_positions[i]);
+            body.Position = initialPositions[i] + (1.0 / 6.0) * Time.fixedDeltaTime * (k1_velocities[i] + 2 * k2_velocities[i] + 2 * k3_velocities[i] + k4_velocities[i]);
+            body.Velocity = initialVelocities[i] + (1.0 / 6.0) * Time.fixedDeltaTime * (k1_positions[i] + 2 * k2_positions[i] + 2 * k3_positions[i] + k4_positions[i]);
         }
     }
 
@@ -164,81 +164,9 @@ public class GravityManager : MonoBehaviour
                     double forceMagnitude = G * (body1.Mass * body2.Mass) / Math.Pow(distance, 2);
                     Vector3d force = direction.normalized * forceMagnitude;
                     
-                    // Apply forces if the other isn't a player
-                    if (!body2.isPlayer)
-                    {
-                        body1.acceleration += (force / body1.Mass);
-                    }
-
-                    if (!body1.isPlayer)
-                    {
-                        body2.acceleration += (-force / body2.Mass); // Apply force in opposite direction
-                    }
-                }
-            }
-            
-            // Allow player to move their ship
-            if (planets[i].isPlayer)
-            {
-                // no point doing calculations here if player isn't actively moving
-                if (!Input.anyKey)
-                {
-                    continue;
-                }
-                
-                // Speed that the players thrusters will accelerate them, dependent on time step
-                Vector3d speedVector = ConvertVelocityToTimeScale(new Vector3d(0, 0, 6.6845871223 * .000001),
-                    TimeScale.second, TimeScale);
-                double mag = speedVector.z;
-
-                PlayerCamera playerCamera = planets[i].GetComponentInChildren<PlayerCamera>();
-
-                // Move Forwards
-                if (Input.GetKey(KeyCode.W))
-                {
-                    Vector3d forwardDirection = new Vector3d(playerCamera.transform.rotation * Vector3.back);
-        
-                    planets[i].acceleration += forwardDirection * mag;
-                }
-                
-                // Move Back
-                if (Input.GetKey(KeyCode.S))
-                {
-                    Vector3d backDirection = new Vector3d(playerCamera.transform.rotation * Vector3.forward);
-        
-                    planets[i].acceleration += backDirection * mag;
-                }
-                
-                // Move Left
-                if (Input.GetKey(KeyCode.A))
-                {
-                    Vector3d leftDirection = new Vector3d(playerCamera.transform.rotation * Vector3.right);
-        
-                    planets[i].acceleration += leftDirection * mag;
-                }
-                
-                // Move Right
-                if (Input.GetKey(KeyCode.D))
-                {
-                    Vector3d rightDirection = new Vector3d(playerCamera.transform.rotation * Vector3.left);
-        
-                    planets[i].acceleration += rightDirection * mag;
-                }
-                
-                // Move Up
-                if (Input.GetKey(KeyCode.LeftShift))
-                {
-                    Vector3d upDirection = new Vector3d(playerCamera.transform.rotation * Vector3.up);
-        
-                    planets[i].acceleration += upDirection * mag;
-                }
-                
-                // Move Down
-                if (Input.GetKey(KeyCode.LeftControl))
-                {
-                    Vector3d downDirection = new Vector3d(playerCamera.transform.rotation * Vector3.down);
-        
-                    planets[i].acceleration += downDirection * mag;
+                    // Apply forces
+                    body1.acceleration += (force / body1.Mass);
+                    body2.acceleration += (-force / body2.Mass); // Apply force in opposite direction
                 }
             }
         }

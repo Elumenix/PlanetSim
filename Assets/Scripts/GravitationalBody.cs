@@ -10,23 +10,15 @@ public class GravitationalBody : MonoBehaviour
     public Vector3d Velocity;
     public double RotationSpeed;
     public double Mass;
-    public bool isPlayer = false;
 
     [HideInInspector] public Vector3d acceleration;
     [HideInInspector] public Vector3d lastAcceleration;
-    
-    //[HideInInspector] public Vector3d previousPosition;
     
     
     // Start is called before the first frame update
     void Start()
     {
         acceleration = Vector3d.zero;
-        
-        // Get it to the correct orientation
-        
-        //transform.Rotate(new Vector3(90 - Obliquity, 0));
-        //previousPosition = Position - Velocity * Time.deltaTime;
     }
 
     // Update is called once per frame

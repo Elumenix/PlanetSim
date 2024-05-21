@@ -27,16 +27,16 @@ public class TimeTracker : MonoBehaviour
         switch (trackedScene.TimeScale)
         {
             case TimeScale.second:
-                lessThanSecond += Time.deltaTime;
+                lessThanSecond += Time.fixedDeltaTime;
                 break;
             case TimeScale.minute:
-                lessThanSecond += Time.deltaTime * 60.0;
+                lessThanSecond += Time.fixedDeltaTime * 60.0;
                 break;
             case TimeScale.hour:
-                lessThanSecond += Time.deltaTime * 60.0 * 60.0;
+                lessThanSecond += Time.fixedDeltaTime * 60.0 * 60.0;
                 break;
             case TimeScale.day:
-                lessThanSecond += Time.deltaTime * 60.0 * 60.0 * 24.0;
+                lessThanSecond += Time.fixedDeltaTime * 60.0 * 60.0 * 24.0;
                 break;
         }
 
@@ -74,8 +74,6 @@ public class TimeTracker : MonoBehaviour
         }
 
         string output = "";
-        int offset = IsLeapYear(year) ? 1 : 0;
-
         
         // Figure out the month
         int[] daysInMonth = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};

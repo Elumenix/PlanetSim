@@ -856,7 +856,6 @@ MonoBehaviour:
     z: -0.00000119401060689
   RotationSpeed: 0.00620731016089
   Mass: 17.1
-  isPlayer: 0
   acceleration:
     x: 0
     y: 0
@@ -1125,7 +1124,6 @@ MonoBehaviour:
     z: -0.00000663840763222
   RotationSpeed: 0.0040612509026
   Mass: 0.107
-  isPlayer: 0
   acceleration:
     x: 0
     y: 0
@@ -1399,7 +1397,6 @@ MonoBehaviour:
     z: 0.00000495693300433
   RotationSpeed: 0.000071047339554
   Mass: 0.00553
-  isPlayer: 0
   acceleration:
     x: 0
     y: 0
@@ -1537,7 +1534,6 @@ MonoBehaviour:
     z: -0.00000000079400238075
   RotationSpeed: 0.00000297
   Mass: 333000
-  isPlayer: 0
   acceleration:
     x: 0
     y: 0
@@ -1950,7 +1946,6 @@ MonoBehaviour:
     z: -0.00000280770122376
   RotationSpeed: 0.00938418924755
   Mass: 95.2
-  isPlayer: 0
   acceleration:
     x: 0
     y: 0
@@ -2521,7 +2516,6 @@ MonoBehaviour:
     z: 0.00000084382521219
   RotationSpeed: -0.00580045283057
   Mass: 14.5
-  isPlayer: 0
   acceleration:
     x: 0
     y: 0
@@ -3135,7 +3129,6 @@ MonoBehaviour:
     z: 0.00000001108007879
   RotationSpeed: 0.00417807413224
   Mass: 1
-  isPlayer: 0
   acceleration:
     x: 0
     y: 0
@@ -3273,7 +3266,6 @@ MonoBehaviour:
     z: -0.00000685006917336
   RotationSpeed: -0.0000171451890615
   Mass: 0.815
-  isPlayer: 0
   acceleration:
     x: 0
     y: 0
@@ -3536,7 +3528,6 @@ MonoBehaviour:
     z: 0.00000171808864619
   RotationSpeed: 0.0100754628274
   Mass: 317.8
-  isPlayer: 0
   acceleration:
     x: 0
     y: 0
@@ -4082,7 +4073,6 @@ MonoBehaviour:
     z: -0.00000058316471504
   RotationSpeed: 0.00015250417633
   Mass: 0.0123
-  isPlayer: 0
   acceleration:
     x: 0
     y: 0
