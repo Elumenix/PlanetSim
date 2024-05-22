@@ -38,6 +38,15 @@ public class TimeTracker : MonoBehaviour
             case TimeScale.day:
                 lessThanSecond += Time.fixedDeltaTime * 60.0 * 60.0 * 24.0;
                 break;
+            case TimeScale.week:
+                lessThanSecond += Time.fixedDeltaTime * 60.0 * 60.0 * 24.0 * 7.0;
+                break;
+            case TimeScale.month:
+                lessThanSecond += Time.fixedDeltaTime * 60.0 * 60.0 * 24.0 * 30.437;
+                break;
+            case TimeScale.year:
+                lessThanSecond += Time.fixedDeltaTime * 60.0 * 60.0 * 24.0 * 365.25;
+                break;
         }
 
 

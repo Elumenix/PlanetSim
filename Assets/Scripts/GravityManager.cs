@@ -7,7 +7,7 @@ using UnityEngine.UIElements;
 
 public enum TimeScale
 {
-    second, minute, hour, day, year
+    second, minute, hour, day, week, month, year
 }
 
 public class GravityManager : MonoBehaviour
@@ -50,6 +50,15 @@ public class GravityManager : MonoBehaviour
         if (previousTimeScale != TimeScale)
         {
             G = GetGravitationalConstant(_timeScale);
+            
+            foreach (GravitationalBody planet in planets)
+            {
+                planet.Velocity = ConvertVelocityToTimeScale(planet.Velocity, previousTimeScale, TimeScale);
+                Vector3d temp = new Vector3d(0, 0, planet.RotationSpeed);
+                temp = ConvertVelocityToTimeScale(temp, previousTimeScale, TimeScale);
+                planet.RotationSpeed = temp.z;
+            }
+            
             previousTimeScale = TimeScale;
         }
 
@@ -194,6 +203,12 @@ public class GravityManager : MonoBehaviour
             case TimeScale.day:
                 // Convert to per day squared
                 return G * 86400 * 86400;
+            case TimeScale.week:
+                // Convert to per week squared
+                return G * (7 * 86400) * (7 * 86400);
+            case TimeScale.month:
+                // Convert to per month squared
+                return G * (30.437 * 86400) * (30.437 * 86400);
             case TimeScale.year:
                 // Convert to per year squared
                 return G * (365.25 * 86400) * (365.25 * 86400);
@@ -205,6 +220,18 @@ public class GravityManager : MonoBehaviour
     
     Vector3d ConvertVelocityToTimeScale(Vector3d velocity, TimeScale oldScale, TimeScale newScale)
     {
+        // Year needs a much more precise internal time-step or the moon and mercury will fly off
+        if (newScale == TimeScale.year)
+        {
+            // Will definitely cause lag if scaled up, but that's largely unavoidable
+            Time.fixedDeltaTime = 0.001f;
+        }
+        else
+        {
+            // Regular time-step. A bit over 60 physics updates per second
+            Time.fixedDeltaTime = .016f;
+        }
+        
         // Convert velocity from old timescale to base units (AU per second)
         switch (oldScale)
         {
@@ -216,6 +243,12 @@ public class GravityManager : MonoBehaviour
                 break;
             case TimeScale.day:
                 velocity /= (86400);
+                break;
+            case TimeScale.week:
+                velocity /= (7 * 86400);
+                break;
+            case TimeScale.month:
+                velocity /= (30.437 * 86400);
                 break;
             case TimeScale.year:
                 velocity /= (365.25 * 86400);
@@ -233,6 +266,12 @@ public class GravityManager : MonoBehaviour
                 break;
             case TimeScale.day:
                 velocity *= (86400);
+                break;
+            case TimeScale.week:
+                velocity *= (7 * 86400);
+                break;
+            case TimeScale.month:
+                velocity *= (30.437 * 86400);
                 break;
             case TimeScale.year:
                 velocity *= (365.25 * 86400);
