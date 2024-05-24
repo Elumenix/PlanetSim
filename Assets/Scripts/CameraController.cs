@@ -1,26 +1,30 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using TMPro;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 public class CameraController : MonoBehaviour
 {
     public Transform target; // the object to follow
     public GravityManager planetManager;
     public GameObject circlePrefab;
-    private List<ValueTuple<GameObject, float>> circles;
+    private List<ValueTuple<GameObject, float>> circles; // Value 1: Planet, Value 2: Progress in Lerp function
     
+    // Controls how responsive mouse rotation is
     public float distance = 10.0f; // distance from target
     public float xSpeed = 120.0f; // rotation speed around target
     public float ySpeed = 120.0f;
     public float scrollSpeed = 5;
 
+    // Euler rotation values for x and y
     private float x = 0.0f;
     private float y = 0.0f;
 
+    // Variables that track circle Ui changes
     private int lastIndexHovered;
-
     private Vector3 minScale;
     private Vector3 maxScale;
 
@@ -50,7 +54,51 @@ public class CameraController : MonoBehaviour
         {
             GameObject circle = Instantiate(circlePrefab);
             circle.GetComponentInChildren<TextMeshPro>().text = planet.name;
+            
             // Todo: maybe change colors here
+            /*SpriteRenderer circlePointer = circle.GetComponent<SpriteRenderer>();
+            Color newColor = Color.white;
+            
+            switch(planet.name)
+            {
+                case "Mercury":
+                    newColor = Color.magenta;
+                    break;
+                
+                case "Venus":
+                    break;
+                
+                case "Earth":
+                    break;
+                
+                case "Mars":
+                    break;
+                
+                case "Jupiter":
+                    break;
+                
+                case "Saturn":
+                    break;
+                
+                case "Uranus":
+                    newColor = new Color(187f / 255, 225f / 255, 228f / 255);
+                    break;
+                
+                case "Neptune":
+                    break;
+                
+                default:
+                    newColor = Color.white;
+                    break;
+            }
+
+            circlePointer.color = newColor;
+            SpriteRenderer[] renderers = circlePointer.GetComponentsInChildren<SpriteRenderer>();
+
+            foreach (SpriteRenderer ren in renderers)
+            {
+                ren.color = newColor;
+            }*/
             
             // I don't care about the moon
             if (planet.name == "Moon")
@@ -191,13 +239,19 @@ public class CameraController : MonoBehaviour
             
             Vector3 dir = planet.transform.position - position;
             float dist = dir.magnitude;
+            float tarDist = (target.transform.position - camera!.transform.position).magnitude;
 
             if (planet.transform != target && dist > Mathf.Pow(planet.transform.localScale.x, 2))
             {
                 circles[i].Item1.SetActive(true);
-                
-                // Put circle 20 units from camera in the direction of the planet 
-                circles[i].Item1.transform.position = position + dir.normalized * 20;
+
+                // Put circles the same distance from the camera as the planet, and scale them to maintain the same size
+                // The goal of this is so that the planet covers the ui for other planets that would be hidden behind it
+                Vector3 newPosition = position + dir.normalized * tarDist;
+                circles[i].Item1.transform.position = newPosition;
+
+                // Maintain scale relative to camera
+                circles[i].Item1.transform.localScale *= tarDist / 20f;
                 
                 // Rotates circle to look at the camera
                 circles[i].Item1.transform.LookAt(planet.transform.position * 2 - transform.position);
