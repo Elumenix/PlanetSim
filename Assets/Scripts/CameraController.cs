@@ -56,32 +56,32 @@ public class CameraController : MonoBehaviour
             
             // Todo: maybe change colors here
             SpriteRenderer circlePointer = circle.GetComponent<SpriteRenderer>();
-            Color newColor = Color.white;
+            Color newColor;
             
             switch(planet.name)
             {
                 case "Mercury":
-                    newColor = Color.magenta;
+                    newColor = new Color(151f / 255, 151f / 255, 159f / 255);
                     break;
                 
                 case "Venus":
-                    newColor = Color.blue;
+                    newColor = new Color(187f / 255, 183f / 255, 171f / 255);
                     break;
                 
                 case "Earth":
-                    newColor = Color.green;
+                    newColor = new Color(140f / 255, 177f / 255, 222f / 255);
                     break;
                 
                 case "Mars":
-                    newColor = Color.red;
+                    newColor = new Color(226f / 255, 123f / 255, 88f / 255);
                     break;
                 
                 case "Jupiter":
-                    newColor = Color.cyan;
+                    newColor = new Color(200f / 255, 139f / 255, 58f / 255);
                     break;
                 
                 case "Saturn":
-                    newColor = Color.yellow;
+                    newColor = new Color(195f / 255, 161f / 255, 113f / 255);
                     break;
                 
                 case "Uranus":
@@ -89,7 +89,7 @@ public class CameraController : MonoBehaviour
                     break;
                 
                 case "Neptune":
-                    newColor = Color.blue;
+                    newColor = new Color(33f / 255, 35f / 255, 84f / 255);
                     break;
                 
                 default:
@@ -98,15 +98,9 @@ public class CameraController : MonoBehaviour
             }
 
             circlePointer.color = newColor;
-            SpriteRenderer[] renderers = circlePointer.GetComponentsInChildren<SpriteRenderer>();
-
-            foreach (SpriteRenderer ren in renderers)
-            {
-                ren.color = newColor;
-            }
             
             // I don't care about the moon
-            if (planet.name == "Moon")
+            if (planet.name is "Moon" or "Sun")
             {
                 circle.SetActive(false);
             }
@@ -268,7 +262,7 @@ public class CameraController : MonoBehaviour
             }
 
             // Don't want to see the moon ui at all
-            if (planet.name is "Moon")
+            if (planet.name is "Moon" or "Sun")
             {
                 circles[i].Item1.SetActive(false);
                 continue;
@@ -289,8 +283,9 @@ public class CameraController : MonoBehaviour
             Renderer rend = circles[i].Item1.GetComponent<Renderer>();
             rend.sortingOrder = (500 - (int)(Mathf.Sqrt(dist))); // Furthest: neptune to uranus at ~275
 
-            // Don't draw the target planet at all, or sun unless really far away
-            if (planet.transform != target && dist > Mathf.Pow(planet.transform.localScale.x, 2))
+            // Don't draw the target planet at all, or planets really close to the camera
+            if (planet.transform != target &&
+                dist > planet.transform.localScale.x + Mathf.Pow(planet.transform.localScale.x, 2))
             {
                 circles[i].Item1.SetActive(true);
 
