@@ -135,7 +135,7 @@ GameObject:
   - component: {fileID: 167282250}
   - component: {fileID: 167282249}
   - component: {fileID: 167282248}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: NeptuneLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -322,7 +322,7 @@ Camera:
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 32599
+    m_Bits: 32607
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -562,7 +562,7 @@ GameObject:
   - component: {fileID: 227416462}
   - component: {fileID: 227416461}
   - component: {fileID: 227416460}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: MarsLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -699,7 +699,7 @@ GameObject:
   - component: {fileID: 296814417}
   - component: {fileID: 296814416}
   - component: {fileID: 296814415}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: SaturnLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -967,7 +967,7 @@ GameObject:
   - component: {fileID: 361296769}
   - component: {fileID: 361296768}
   - component: {fileID: 361296770}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: EarthLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1510,7 +1510,7 @@ GameObject:
   - component: {fileID: 662156989}
   - component: {fileID: 662156988}
   - component: {fileID: 662156987}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: Sun
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1653,7 +1653,7 @@ GameObject:
   - component: {fileID: 748505305}
   - component: {fileID: 748505304}
   - component: {fileID: 748505303}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: UranusLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2059,7 +2059,7 @@ GameObject:
   - component: {fileID: 1082752367}
   - component: {fileID: 1082752366}
   - component: {fileID: 1082752365}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: JupiterLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2628,7 +2628,7 @@ GameObject:
   - component: {fileID: 1267933970}
   - component: {fileID: 1267933969}
   - component: {fileID: 1267933968}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: VenusLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2836,7 +2836,7 @@ GameObject:
   - component: {fileID: 1375854178}
   - component: {fileID: 1375854177}
   - component: {fileID: 1375854176}
-  m_Layer: 0
+  m_Layer: 3
   m_Name: MercuryLight
   m_TagString: Untagged
   m_Icon: {fileID: 0}

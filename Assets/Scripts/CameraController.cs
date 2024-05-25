@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using TMPro;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 
 public class CameraController : MonoBehaviour
 {
@@ -56,7 +55,7 @@ public class CameraController : MonoBehaviour
             circle.GetComponentInChildren<TextMeshPro>().text = planet.name;
             
             // Todo: maybe change colors here
-            /*SpriteRenderer circlePointer = circle.GetComponent<SpriteRenderer>();
+            SpriteRenderer circlePointer = circle.GetComponent<SpriteRenderer>();
             Color newColor = Color.white;
             
             switch(planet.name)
@@ -66,18 +65,23 @@ public class CameraController : MonoBehaviour
                     break;
                 
                 case "Venus":
+                    newColor = Color.blue;
                     break;
                 
                 case "Earth":
+                    newColor = Color.green;
                     break;
                 
                 case "Mars":
+                    newColor = Color.red;
                     break;
                 
                 case "Jupiter":
+                    newColor = Color.cyan;
                     break;
                 
                 case "Saturn":
+                    newColor = Color.yellow;
                     break;
                 
                 case "Uranus":
@@ -85,6 +89,7 @@ public class CameraController : MonoBehaviour
                     break;
                 
                 case "Neptune":
+                    newColor = Color.blue;
                     break;
                 
                 default:
@@ -98,7 +103,7 @@ public class CameraController : MonoBehaviour
             foreach (SpriteRenderer ren in renderers)
             {
                 ren.color = newColor;
-            }*/
+            }
             
             // I don't care about the moon
             if (planet.name == "Moon")
@@ -147,20 +152,19 @@ public class CameraController : MonoBehaviour
 
             // Figures out what planet the mouse is hovering this frame
             #region NextScalingHover
-
-            // Mouse hover for next frame is figured out
-            if (i == 1)
-            {
-                Debug.Log(Vector2.Distance(mousePosition,
-                    camera!.WorldToScreenPoint(circles[i].Item1.transform.position)));
-            }
-
+            
             // convert ui to screen space to compare to mouse position
             float mouseDistance =
-                Vector2.Distance(mousePosition, camera!.WorldToScreenPoint(circles[i].Item1.transform.position));
+                Vector2.Distance(mousePosition, camera!.WorldToScreenPoint(planetManager.planets[i].transform.position));
 
             if (mouseDistance <= 35f) // Within Range
             {
+                // Don't let the moon be an option unless on Earth
+                if (i == 4 && planetManager.planets[3].transform != target.transform)
+                {
+                    continue;    
+                }
+                
                 if (indexHovered == -1) // If nothing is hovered yet
                 {
                     indexHovered = i;
@@ -231,16 +235,61 @@ public class CameraController : MonoBehaviour
         {
             GravitationalBody planet = planetManager.planets[i];
 
+            // This will hide circles if hidden behind other planets, mainly sun but also handles earth and moon
+            if (planetManager.planets[0].transform != target.transform) // Ignore if tracking the sun
+            {
+                // Don't do this part for the planet you are currently looking at
+                if (planet.transform != target.transform)
+                {
+                    int layerMask;
+                    
+                    // Block things behind earth if the player is focused on the moon
+                    if (planetManager.planets[4].transform == target.transform)
+                    {
+                        layerMask = LayerMask.GetMask("Sun", "Earth"); // Sun, Earth, and Moon    
+                    }
+                    else
+                    {
+                        layerMask = LayerMask.GetMask("Sun"); // Only Sun
+                    }
+                    
+                    // Essentially, hide circle if the planet is obscured by the sun, or any other planet
+                    if (Physics.Linecast(position, planet.transform.position, layerMask))
+                    {
+                        // Will be invisible, continue
+                        circles[i].Item1.SetActive(false);
+                        continue;
+                    }
+                    else
+                    {
+                        circles[i].Item1.SetActive(true);
+                    }
+                }
+            }
+
             // Don't want to see the moon ui at all
             if (planet.name is "Moon")
             {
+                circles[i].Item1.SetActive(false);
                 continue;
+            }
+            if (planet.name is "Earth" && planetManager.planets[4].transform == target.transform)
+            {
+                // Don't show Earth circle if focused on the moon
+                circles[i].Item1.SetActive(false);
+                continue; 
             }
             
             Vector3 dir = planet.transform.position - position;
             float dist = dir.magnitude;
             float tarDist = (target.transform.position - camera!.transform.position).magnitude;
+            
+            // Prevents 3-dimensional z-fighting. Unfortunately needs pretty expensive method calls
+            // Draws things closer to the camera first, surprisingly giving a lot more depth
+            Renderer rend = circles[i].Item1.GetComponent<Renderer>();
+            rend.sortingOrder = (500 - (int)(Mathf.Sqrt(dist))); // Furthest: neptune to uranus at ~275
 
+            // Don't draw the target planet at all, or sun unless really far away
             if (planet.transform != target && dist > Mathf.Pow(planet.transform.localScale.x, 2))
             {
                 circles[i].Item1.SetActive(true);
@@ -248,6 +297,7 @@ public class CameraController : MonoBehaviour
                 // Put circles the same distance from the camera as the planet, and scale them to maintain the same size
                 // The goal of this is so that the planet covers the ui for other planets that would be hidden behind it
                 Vector3 newPosition = position + dir.normalized * tarDist;
+                
                 circles[i].Item1.transform.position = newPosition;
 
                 // Maintain scale relative to camera
