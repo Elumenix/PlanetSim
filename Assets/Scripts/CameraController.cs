@@ -26,10 +26,12 @@ public class CameraController : MonoBehaviour
     private int lastIndexHovered;
     private Vector3 minScale;
     private Vector3 maxScale;
+    private Camera _camera;
 
     // Use this for initialization
     void Start()
     {
+        _camera = Camera.main;
         minScale = new Vector3(0.2f, 0.2f, 0.2f);
         maxScale = new Vector3(0.3f, 0.3f, 0.3f);
         
@@ -54,7 +56,6 @@ public class CameraController : MonoBehaviour
             GameObject circle = Instantiate(circlePrefab);
             circle.GetComponentInChildren<TextMeshPro>().text = planet.name;
             
-            // Todo: maybe change colors here
             SpriteRenderer circlePointer = circle.GetComponent<SpriteRenderer>();
             Color newColor;
             
@@ -114,7 +115,6 @@ public class CameraController : MonoBehaviour
     {
         // Save variables that will be used for Scaling calculations
         Vector2 mousePosition = Input.mousePosition;
-        Camera camera = Camera.main;
         int indexHovered = -1;
         float currentLeastDistance = float.MaxValue;
 
@@ -122,17 +122,12 @@ public class CameraController : MonoBehaviour
         {
             // Following code linearly interpolates scale of all planets based on which was hovered the last update
             #region PreviousScalingChange
-
-            float timeValue;
-            // Mouse hover for last frame is applied
-            if (lastIndexHovered == i)
-            {
-                timeValue = Mathf.Clamp(circles[i].Item2 + Time.fixedDeltaTime * 2, 0, 1);
-            }
-            else
-            {
-                timeValue = Mathf.Clamp(circles[i].Item2 - Time.fixedDeltaTime * 2, 0, 1);
-            }
+            
+            // Mouse hover for last frame is applied. The hovered circle increases in size while all others decrease
+            float timeValue =
+                lastIndexHovered == i
+                    ? Mathf.Clamp(circles[i].Item2 + Time.fixedDeltaTime * 2, 0, 1)   // Increase
+                    : Mathf.Clamp(circles[i].Item2 - Time.fixedDeltaTime * 2, 0, 1);  // Decrease
 
             if (!Mathf.Approximately(timeValue, circles[i].Item2))
             {
@@ -149,7 +144,7 @@ public class CameraController : MonoBehaviour
             
             // convert ui to screen space to compare to mouse position
             float mouseDistance =
-                Vector2.Distance(mousePosition, camera!.WorldToScreenPoint(planetManager.planets[i].transform.position));
+                Vector2.Distance(mousePosition, _camera!.WorldToScreenPoint(planetManager.planets[i].transform.position));
 
             if (mouseDistance <= 35f) // Within Range
             {
@@ -235,19 +230,13 @@ public class CameraController : MonoBehaviour
                 // Don't do this part for the planet you are currently looking at
                 if (planet.transform != target.transform)
                 {
-                    int layerMask;
-                    
                     // Block things behind earth if the player is focused on the moon
-                    if (planetManager.planets[4].transform == target.transform)
-                    {
-                        layerMask = LayerMask.GetMask("Sun", "Earth"); // Sun, Earth, and Moon    
-                    }
-                    else
-                    {
-                        layerMask = LayerMask.GetMask("Sun"); // Only Sun
-                    }
-                    
-                    // Essentially, hide circle if the planet is obscured by the sun, or any other planet
+                    int layerMask =
+                        planetManager.planets[4].transform == target.transform ? 
+                        LayerMask.GetMask("Sun", "Earth") : // Sun, Earth, and Moon    
+                        LayerMask.GetMask("Sun"); // Only Sun
+
+                    // Essentially, hide circle if the planet is obscured by the sun, (and/or earth/moon in moons case)
                     if (Physics.Linecast(position, planet.transform.position, layerMask))
                     {
                         // Will be invisible, continue
@@ -276,7 +265,7 @@ public class CameraController : MonoBehaviour
             
             Vector3 dir = planet.transform.position - position;
             float dist = dir.magnitude;
-            float tarDist = (target.transform.position - camera!.transform.position).magnitude;
+            float tarDist = (target.transform.position - _camera!.transform.position).magnitude;
             
             // Prevents 3-dimensional z-fighting. Unfortunately needs pretty expensive method calls
             // Draws things closer to the camera first, surprisingly giving a lot more depth

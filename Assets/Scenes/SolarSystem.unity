@@ -1186,7 +1186,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 309974555}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 995797394}
+        m_TargetAssemblyTypeName: TimeManager, Assembly-CSharp
+        m_MethodName: largeTimeIncrease
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &309974555
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2053,7 +2065,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 503607521}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 995797394}
+        m_TargetAssemblyTypeName: TimeManager, Assembly-CSharp
+        m_MethodName: smallTimeDecrease
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &503607521
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2515,6 +2539,7 @@ GameObject:
   - component: {fileID: 662156989}
   - component: {fileID: 662156988}
   - component: {fileID: 662156987}
+  - component: {fileID: 662156992}
   m_Layer: 3
   m_Name: Sun
   m_TagString: Untagged
@@ -2646,6 +2671,18 @@ Transform:
   - {fileID: 167282247}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 82.75, y: 0, z: 0}
+--- !u!114 &662156992
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 662156986}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c152aaddc79a6f74085db358dcc502ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &748505301
 GameObject:
   m_ObjectHideFlags: 0
@@ -2925,6 +2962,7 @@ GameObject:
   - component: {fileID: 995797391}
   - component: {fileID: 995797393}
   - component: {fileID: 995797392}
+  - component: {fileID: 995797394}
   m_Layer: 5
   m_Name: TimeControlls
   m_TagString: Untagged
@@ -2995,6 +3033,24 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 995797390}
   m_CullTransparentMesh: 1
+--- !u!114 &995797394
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 995797390}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f03d410b67381c94ba357fd6c5601131, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  trackedScene: {fileID: 1730625373}
+  smallForward: {fileID: 2008419374}
+  smallBackward: {fileID: 503607520}
+  largeForward: {fileID: 309974554}
+  largeBackward: {fileID: 1406383528}
+  textOutput: {fileID: 407067640}
 --- !u!1 &1078431434
 GameObject:
   m_ObjectHideFlags: 0
@@ -4335,7 +4391,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1406383529}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 995797394}
+        m_TargetAssemblyTypeName: TimeManager, Assembly-CSharp
+        m_MethodName: largeTimeDecrease
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1406383529
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5117,7 +5185,7 @@ MonoBehaviour:
   - {fileID: 1255453456}
   - {fileID: 342006490}
   _timeScale: 3
-  speed: 1
+  StartingSpeed: 1
 --- !u!4 &1730625374
 Transform:
   m_ObjectHideFlags: 0
@@ -5761,7 +5829,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2008419375}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 995797394}
+        m_TargetAssemblyTypeName: TimeManager, Assembly-CSharp
+        m_MethodName: smallTimeIncrease
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &2008419375
 MonoBehaviour:
   m_ObjectHideFlags: 0

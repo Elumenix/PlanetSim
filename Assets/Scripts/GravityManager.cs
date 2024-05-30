@@ -24,13 +24,14 @@ public class GravityManager : MonoBehaviour
     }
 
     private TimeScale previousTimeScale;
-    public float speed = 1;
+    public float StartingSpeed = 1;
     
     // Start is called before the first frame update
     void Start()
     {
         previousTimeScale = TimeScale;
         G = GetGravitationalConstant(TimeScale);
+        Time.timeScale = StartingSpeed;
 
         if (_timeScale != TimeScale.second)
         {
@@ -61,9 +62,6 @@ public class GravityManager : MonoBehaviour
             
             previousTimeScale = TimeScale;
         }
-
-        // Should let me take numbers of a timescale that isn't one
-        Time.timeScale = speed;
         
         
         // Save initial states
@@ -221,16 +219,9 @@ public class GravityManager : MonoBehaviour
     Vector3d ConvertVelocityToTimeScale(Vector3d velocity, TimeScale oldScale, TimeScale newScale)
     {
         // Year needs a much more precise internal time-step or the moon and mercury will fly off
-        if (newScale == TimeScale.year)
-        {
-            // Will definitely cause lag if scaled up, but that's largely unavoidable
-            Time.fixedDeltaTime = 0.001f;
-        }
-        else
-        {
-            // Regular time-step. A bit over 60 physics updates per second
-            Time.fixedDeltaTime = .016f;
-        }
+        Time.fixedDeltaTime = newScale == TimeScale.year ? 
+            0.001f :         // Will definitely cause lag if scaled up, but that's largely unavoidable
+            .016f;             // Regular time-step. A bit over 60 physics updates per second
         
         // Convert velocity from old timescale to base units (AU per second)
         switch (oldScale)
@@ -279,5 +270,83 @@ public class GravityManager : MonoBehaviour
         }
 
         return velocity;
+    }
+
+    public void IncreaseTimescale()
+    {
+        if (Time.timeScale != 0)
+        {
+            Time.timeScale = 1;
+        }
+
+        switch (_timeScale)
+        {
+            case TimeScale.second:
+                _timeScale = TimeScale.minute;
+                break;
+            
+            case TimeScale.minute:
+                _timeScale = TimeScale.hour;
+                break;
+            
+            case TimeScale.hour:
+                _timeScale = TimeScale.day;
+                break;
+            
+            case TimeScale.day:
+                _timeScale = TimeScale.week;
+                break;
+            
+            case TimeScale.week:
+                _timeScale = TimeScale.month;
+                break;
+            
+            case TimeScale.month:
+                _timeScale = TimeScale.year;
+                break;
+            
+            // Don't Change
+            case TimeScale.year:
+                break;
+        }
+    }
+    
+    public void DecreaseTimescale()
+    {
+        if (Time.timeScale != 0)
+        {
+            Time.timeScale = 1;
+        }
+
+        switch (_timeScale)
+        {
+            // Don't Change
+            case TimeScale.second:
+                break;
+            
+            case TimeScale.minute:
+                _timeScale = TimeScale.second;
+                break;
+            
+            case TimeScale.hour:
+                _timeScale = TimeScale.minute;
+                break;
+            
+            case TimeScale.day:
+                _timeScale = TimeScale.hour;
+                break;
+            
+            case TimeScale.week:
+                _timeScale = TimeScale.day;
+                break;
+            
+            case TimeScale.month:
+                _timeScale = TimeScale.week;
+                break;
+            
+            case TimeScale.year:
+                _timeScale = TimeScale.month;
+                break;
+        }
     }
 }
