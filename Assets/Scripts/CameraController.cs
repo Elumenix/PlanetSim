@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class CameraController : MonoBehaviour
 {
@@ -117,7 +118,8 @@ public class CameraController : MonoBehaviour
         Vector2 mousePosition = Input.mousePosition;
         int indexHovered = -1;
         float currentLeastDistance = float.MaxValue;
-
+        bool overUI = EventSystem.current.IsPointerOverGameObject();
+        
         for (int i = 0; i < circles.Count; i++)
         {
             // Following code linearly interpolates scale of all planets based on which was hovered the last update
@@ -125,7 +127,7 @@ public class CameraController : MonoBehaviour
             
             // Mouse hover for last frame is applied. The hovered circle increases in size while all others decrease
             float timeValue =
-                lastIndexHovered == i
+                lastIndexHovered == i && !overUI
                     ? Mathf.Clamp(circles[i].Item2 + Time.fixedDeltaTime * 2, 0, 1)   // Increase
                     : Mathf.Clamp(circles[i].Item2 - Time.fixedDeltaTime * 2, 0, 1);  // Decrease
 
@@ -171,26 +173,30 @@ public class CameraController : MonoBehaviour
 
         // Camera direction and zoom will be modified based on user controls
         #region CameraOrientationUpdate
-        
-        // Go to different Planet
-        if (Input.GetMouseButtonUp(0) && lastIndexHovered != -1)
-        {
-            target = planetManager.planets[lastIndexHovered].transform;
-            
-            Vector3 angles = transform.eulerAngles;
-            x = angles.y;
-            y = angles.x;
-        
-            distance = target.transform.localScale.x * 10f;
-            scrollSpeed = distance / 10;
-        
-            Quaternion rot = Quaternion.Euler(y, x, 0);
-            Vector3 pos = rot * new Vector3(0.0f, 0.0f, -distance) + target.position;
 
-            transform.rotation = rot;
-            transform.position = pos;
+        // Clicking while over Ui shouldn't affect scene
+        if (!overUI)
+        {
+            // Go to different Planet
+            if (Input.GetMouseButtonUp(0) && lastIndexHovered != -1)
+            {
+                target = planetManager.planets[lastIndexHovered].transform;
+
+                Vector3 angles = transform.eulerAngles;
+                x = angles.y;
+                y = angles.x;
+
+                distance = target.transform.localScale.x * 10f;
+                scrollSpeed = distance / 10;
+
+                Quaternion rot = Quaternion.Euler(y, x, 0);
+                Vector3 pos = rot * new Vector3(0.0f, 0.0f, -distance) + target.position;
+
+                transform.rotation = rot;
+                transform.position = pos;
+            }
         }
-        
+
         if (Input.mouseScrollDelta.y != 0)
         {
             distance -= Input.mouseScrollDelta.y * scrollSpeed;
