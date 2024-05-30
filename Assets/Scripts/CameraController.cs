@@ -128,8 +128,8 @@ public class CameraController : MonoBehaviour
             // Mouse hover for last frame is applied. The hovered circle increases in size while all others decrease
             float timeValue =
                 lastIndexHovered == i && !overUI
-                    ? Mathf.Clamp(circles[i].Item2 + Time.fixedDeltaTime * 2, 0, 1)   // Increase
-                    : Mathf.Clamp(circles[i].Item2 - Time.fixedDeltaTime * 2, 0, 1);  // Decrease
+                    ? Mathf.Clamp(circles[i].Item2 + Time.deltaTime * 5, 0, 1)   // Increase
+                    : Mathf.Clamp(circles[i].Item2 - Time.deltaTime * 5, 0, 1);  // Decrease
 
             if (!Mathf.Approximately(timeValue, circles[i].Item2))
             {
