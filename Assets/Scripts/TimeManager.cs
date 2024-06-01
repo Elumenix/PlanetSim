@@ -23,14 +23,35 @@ public class TimeManager : MonoBehaviour
             placeHolder += "s";
         }
 
-        textOutput.text = Time.timeScale + " " + placeHolder;
+        placeHolder = Time.timeScale + " " + placeHolder;
+        
+        // Alter to add negative sign
+        if (trackedScene.reversed && Time.timeScale != 0)
+        {
+            placeHolder = "-" + placeHolder;
+        }
+
+        textOutput.text = placeHolder;
     }
 
     public void smallTimeIncrease()
     {
-        if (Time.timeScale < 100)
+        if (Time.timeScale < 100 && !trackedScene.reversed)
         {
             Time.timeScale++;
+        }
+        else if (trackedScene.reversed)
+        {
+            // Transition to not reversed
+            if (Time.timeScale == 0)
+            {
+                Time.timeScale++;
+                trackedScene.reversed = false;
+            }
+            else
+            {
+                Time.timeScale--;
+            }
         }
     }
 
@@ -38,7 +59,19 @@ public class TimeManager : MonoBehaviour
     {
         if (Time.timeScale > 0)
         {
-            Time.timeScale--;
+            if (!trackedScene.reversed)
+            {
+                Time.timeScale--;
+            }
+            else
+            {
+                Time.timeScale++;
+            }
+        }
+        else if (Time.timeScale == 0)
+        {
+            Time.timeScale++;
+            trackedScene.reversed = true;   
         }
     }
 

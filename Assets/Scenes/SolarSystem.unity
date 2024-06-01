@@ -5182,6 +5182,7 @@ MonoBehaviour:
   - {fileID: 342006490}
   _timeScale: 3
   StartingSpeed: 1
+  reversed: 0
 --- !u!4 &1730625374
 Transform:
   m_ObjectHideFlags: 0

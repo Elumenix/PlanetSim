@@ -25,6 +25,7 @@ public class GravityManager : MonoBehaviour
 
     private TimeScale previousTimeScale;
     public float StartingSpeed = 1;
+    public bool reversed;
     
     // Start is called before the first frame update
     void Start()
@@ -62,9 +63,14 @@ public class GravityManager : MonoBehaviour
             
             previousTimeScale = TimeScale;
         }
+
+        // For reversing time, I just need to invert DeltaTime every frame, so this will be multiplied by DeltaTime
+        // This works because RK4 is symmetrical, so the orbits are properly followed even if time is reversed
+        int timeDir = !reversed ? 1 : -1;
         
         
-        // Save initial states
+        // Calculate initial accelerations (k1)
+        CalculateAccelerations();
         List<Vector3d> initialPositions = new List<Vector3d>();
         List<Vector3d> initialVelocities = new List<Vector3d>();
         foreach (GravitationalBody body in planets)
@@ -73,11 +79,10 @@ public class GravityManager : MonoBehaviour
             initialVelocities.Add(new Vector3d(body.Velocity.x, body.Velocity.y, body.Velocity.z));
             
             // Doesn't accelerate, therefore doesn't need integration method
-            body.transform.Rotate(transform.up, (float)body.RotationSpeed * Time.fixedDeltaTime);
+            body.transform.Rotate(transform.up, (float) body.RotationSpeed * timeDir * Time.fixedDeltaTime);
         }
         
-        // Calculate initial accelerations (k1)
-        CalculateAccelerations();
+        // Using Accelerations from last frame (k1)
         List<Vector3d> k1_velocities = new List<Vector3d>();
         List<Vector3d> k1_positions = new List<Vector3d>();
         foreach (GravitationalBody body in planets)
@@ -90,8 +95,8 @@ public class GravityManager : MonoBehaviour
         for (int i = 0; i < planets.Count; i++)
         {
             GravitationalBody body = planets[i];
-            body.Position = initialPositions[i] + 0.5 * Time.fixedDeltaTime * k1_velocities[i];
-            body.Velocity = initialVelocities[i] + 0.5 * Time.fixedDeltaTime * k1_positions[i];
+            body.Position = initialPositions[i] + 0.5 * timeDir * Time.fixedDeltaTime * k1_velocities[i];
+            body.Velocity = initialVelocities[i] + 0.5 * timeDir * Time.fixedDeltaTime * k1_positions[i];
         }
         CalculateAccelerations();
         List<Vector3d> k2_velocities = new List<Vector3d>();
@@ -106,8 +111,8 @@ public class GravityManager : MonoBehaviour
         for (int i = 0; i < planets.Count; i++)
         {
             GravitationalBody body = planets[i];
-            body.Position = initialPositions[i] + 0.5 * Time.fixedDeltaTime * k2_velocities[i];
-            body.Velocity = initialVelocities[i] + 0.5 * Time.fixedDeltaTime * k2_positions[i];
+            body.Position = initialPositions[i] + 0.5 * timeDir * Time.fixedDeltaTime * k2_velocities[i];
+            body.Velocity = initialVelocities[i] + 0.5 * timeDir * Time.fixedDeltaTime * k2_positions[i];
         }
         CalculateAccelerations();
         List<Vector3d> k3_velocities = new List<Vector3d>();
@@ -122,8 +127,8 @@ public class GravityManager : MonoBehaviour
         for (int i = 0; i < planets.Count; i++)
         {
             GravitationalBody body = planets[i];
-            body.Position = initialPositions[i] + Time.fixedDeltaTime * k3_velocities[i];
-            body.Velocity = initialVelocities[i] + Time.fixedDeltaTime * k3_positions[i];
+            body.Position = initialPositions[i] + timeDir * Time.fixedDeltaTime * k3_velocities[i];
+            body.Velocity = initialVelocities[i] + timeDir * Time.fixedDeltaTime * k3_positions[i];
         }
         CalculateAccelerations();
         List<Vector3d> k4_velocities = new List<Vector3d>();
@@ -138,8 +143,10 @@ public class GravityManager : MonoBehaviour
         for (int i = 0; i < planets.Count; i++)
         {
             GravitationalBody body = planets[i];
-            body.Position = initialPositions[i] + (1.0 / 6.0) * Time.fixedDeltaTime * (k1_velocities[i] + 2 * k2_velocities[i] + 2 * k3_velocities[i] + k4_velocities[i]);
-            body.Velocity = initialVelocities[i] + (1.0 / 6.0) * Time.fixedDeltaTime * (k1_positions[i] + 2 * k2_positions[i] + 2 * k3_positions[i] + k4_positions[i]);
+            body.Position = initialPositions[i] + (1.0 / 6.0) * timeDir * Time.fixedDeltaTime *
+                (k1_velocities[i] + 2 * k2_velocities[i] + 2 * k3_velocities[i] + k4_velocities[i]);
+            body.Velocity = initialVelocities[i] + (1.0 / 6.0) * timeDir * Time.fixedDeltaTime *
+                (k1_positions[i] + 2 * k2_positions[i] + 2 * k3_positions[i] + k4_positions[i]);
         }
     }
 
@@ -315,7 +322,10 @@ public class GravityManager : MonoBehaviour
     {
         if (Time.timeScale != 0)
         {
-            Time.timeScale = 1;
+            if (!reversed)
+            {
+                Time.timeScale = 1;
+            }
         }
 
         switch (_timeScale)
