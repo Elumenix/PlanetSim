@@ -322,10 +322,7 @@ public class GravityManager : MonoBehaviour
     {
         if (Time.timeScale != 0)
         {
-            if (!reversed)
-            {
-                Time.timeScale = 1;
-            }
+            Time.timeScale = 1;
         }
 
         switch (_timeScale)

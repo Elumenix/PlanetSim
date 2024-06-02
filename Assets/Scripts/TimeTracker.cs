@@ -14,6 +14,7 @@ public class TimeTracker : MonoBehaviour
     private double lessThanSecond = 0;
 
     private TextMeshProUGUI textField;
+    private bool previouslyReversed;
     
     // Start is called before the first frame update
     void Start()
@@ -24,7 +25,24 @@ public class TimeTracker : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-        // Also handles whether time is reversed or not
+        // Reversed time is tracked with negative numbers while normal time is with positive numbers
+        // A change needs to happen on reversal or the first 48 hours won't be calculated correctly
+        if (previouslyReversed != trackedScene.reversed)
+        {
+            if (trackedScene.reversed) // Normal to Reverse time
+            {
+                ChangeToReverse();
+            }
+            else // Reverse to Normal Time
+            {
+                ChangeToNormal();
+            }
+
+            // Update to share value
+            previouslyReversed = trackedScene.reversed;
+        }
+        
+        // this deltaTime also handles whether time is reversed or not
         double timeDelta = Time.fixedDeltaTime * (trackedScene.reversed ? -1 : 1);
         
         switch (trackedScene.TimeScale)
@@ -78,66 +96,45 @@ public class TimeTracker : MonoBehaviour
 
                     // Leap year shenanigans : Assumes time step will not be more than a year
                     // This will always be true because timescale is used for multiple years, which does them separately
-                    if ((day > 365 && !IsLeapYear(year)) || (day > 366 && IsLeapYear(year)))
+                    if ((day > 365 && !IsLeapYear()) || (day > 366 && IsLeapYear()))
                     {
                         year++;
                         day = 1;
                     }
-                    else if (day < 1) // Time is reversed 
+                    else if (trackedScene.reversed && (day < -365 && !IsLeapYear()) || (day < -366 && IsLeapYear())) // Time is reversed 
                     {
                         year--;
-                        day = IsLeapYear(year) ? 366 : 365;
+                        day = -1; // Last day of the year
                     }
                 }
             }
         }
 
-        string output = "";
-        
         // Figure out the month
         int[] daysInMonth = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
-        if (IsLeapYear(year)) {
+        if (IsLeapYear()) {
             daysInMonth[1] = 29;  // February has 29 days in a leap year
         }
 
         int month = 0;
         int dayTracker = day;
+
+        if (trackedScene.reversed) // Use relative positive day for calculations
+        {
+            dayTracker = (IsLeapYear() ? 366 : 365) + day;
+        }
         
-        // handles positive day values : Forward Time
         while (dayTracker > daysInMonth[month]) {
             dayTracker -= daysInMonth[month];
             month++;
         }
         
-        // handles negative day values : Reverse Time
-        while (dayTracker <= 0) {
-            month--;
-            if (month < 0) {
-                month = 11;
-                year--;
-                if (IsLeapYear(year)) {
-                    daysInMonth[1] = 29;
-                } else {
-                    daysInMonth[1] = 28;
-                }
-            }
-            dayTracker += daysInMonth[month];
-        }
-        
-        output = string.Format("{0:00}/{1:00}/{2}", month + 1, dayTracker, year);
+        string output = string.Format("{0:00}/{1:00}/{2}", month + 1, dayTracker, year);
 
         // Get Time zone hour, and handle potential of negative hour
-        string specifier;
         int displayHour = hour < 0 ? 24 + hour : hour;
 
-        if (displayHour >= 12)
-        {
-            specifier = "PM";
-        }
-        else
-        {
-            specifier = "AM";
-        }
+        var specifier = displayHour >= 12 ? "PM" : "AM";
         
         if (displayHour is 0 or 12) 
         {
@@ -161,8 +158,29 @@ public class TimeTracker : MonoBehaviour
         textField.text = output;
     }
     
-    bool IsLeapYear(int year)
+    bool IsLeapYear()
     {
         return year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+    }
+
+    private void ChangeToReverse()
+    {
+        // Changes all positive values to associated negative values
+        lessThanSecond -= 1;
+        second -= 60;
+        minute -= 60;
+        hour -= 24;
+        day -= IsLeapYear() ? 366 : 365;
+    }
+
+    private void ChangeToNormal()
+    {
+        // All calculations change from negative time values to associated positive values
+        lessThanSecond += 1;
+        second += 60;
+        minute += 60;
+        hour += 24;
+        day += IsLeapYear() ? 366 : 365;
+        // Year is never inverted, unless making it to BC, in which case it could be considered correct
     }
 }
