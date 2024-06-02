@@ -5,6 +5,7 @@ using System.Diagnostics;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using Debug = UnityEngine.Debug;
 
 public class CameraController : MonoBehaviour
 {
@@ -18,10 +19,13 @@ public class CameraController : MonoBehaviour
     public float xSpeed = 120.0f; // rotation speed around target
     public float ySpeed = 120.0f;
     public float scrollSpeed = 5;
+    private bool mouseDown; // tracked so that first clicking on screen doesn't teleport camera
+    private bool dragging; // Tracked so that releasing mouse after drag doesn't suddenly teleport to a planet
 
     // Euler rotation values for x and y
     private float x = 0.0f;
     private float y = 0.0f;
+    private float z = 0.0f;
 
     // Variables that track circle Ui changes
     private int lastIndexHovered;
@@ -178,18 +182,19 @@ public class CameraController : MonoBehaviour
         if (!overUI)
         {
             // Go to different Planet
-            if (Input.GetMouseButtonUp(0) && lastIndexHovered != -1)
+            if (Input.GetMouseButtonUp(0) && lastIndexHovered != -1 && !dragging)
             {
                 target = planetManager.planets[lastIndexHovered].transform;
 
                 Vector3 angles = transform.eulerAngles;
                 x = angles.y;
                 y = angles.x;
+                z = angles.z;
 
                 distance = target.transform.localScale.x * 10f;
-                scrollSpeed = distance / 10;
+                scrollSpeed = distance / 4;
 
-                Quaternion rot = Quaternion.Euler(y, x, 0);
+                Quaternion rot = Quaternion.Euler(y, x, z);
                 Vector3 pos = rot * new Vector3(0.0f, 0.0f, -distance) + target.position;
 
                 transform.rotation = rot;
@@ -197,7 +202,7 @@ public class CameraController : MonoBehaviour
             }
         }
 
-        if (Input.mouseScrollDelta.y != 0)
+        if (Input.mouseScrollDelta.y != 0 && mouseDown)
         {
             distance -= Input.mouseScrollDelta.y * scrollSpeed;
 
@@ -209,12 +214,57 @@ public class CameraController : MonoBehaviour
         
         if (Input.GetMouseButton(0))
         {
-            x += Input.GetAxis("Mouse X") * xSpeed * 0.02f;
-            y -= Input.GetAxis("Mouse Y") * ySpeed * 0.02f;
+            // Prevents teleportation of camera on the first frame you click on the window
+            if (mouseDown)
+            {
+                float saveX = x;
+                float saveY = y;
+                
+                x += Input.GetAxis("Mouse X") * xSpeed * 0.02f;
+                y -= Input.GetAxis("Mouse Y") * ySpeed * 0.02f;
+
+                // Mouse is being used for navigation, not clicking on a planet
+                if (!Mathf.Approximately(saveX, x) || !Mathf.Approximately(saveY, y))
+                {
+                    dragging = true;
+                }
+            }
+            else
+            {
+                mouseDown = true;
+            }
+        }
+        else
+        {
+            dragging = false;
         }
         
+        // Using right click will allow movement along the third axis
+        if (Input.GetMouseButton(1))
+        {
+            if (mouseDown)
+            {
+                float middleScreen = Screen.width / 2.0f;
+
+                // Direction of axis change should be dependent on the side of the screen that the mouse is on
+                if (mousePosition.x < middleScreen)
+                {
+                    z += Input.GetAxis("Mouse Y") * ySpeed * 0.02f;
+                }
+                else if (mousePosition.x > middleScreen)
+                {
+                    z -= Input.GetAxis("Mouse Y") * ySpeed * 0.02f;
+                }
+            }
+            else
+            {
+                mouseDown = true;
+            }
+        }
+        
+        
         // Update position of camera, required every frame since planets are moving
-        Quaternion rotation = Quaternion.Euler(y, x, 0);
+        Quaternion rotation = Quaternion.Euler(y, x, z);
         Vector3 position = rotation * new Vector3(0.0f, 0.0f, -distance) + target.position;
 
         transform.rotation = rotation;
