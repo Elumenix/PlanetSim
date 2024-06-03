@@ -11,7 +11,7 @@ public class TimeTracker : MonoBehaviour
     private int hour = 0;
     private int minute = 0;
     private int second = 0;
-    private double lessThanSecond = 0;
+    private decimal lessThanSecond = 0;
 
     private TextMeshProUGUI textField;
     private bool previouslyReversed;
@@ -48,25 +48,25 @@ public class TimeTracker : MonoBehaviour
         switch (trackedScene.TimeScale)
         {
             case TimeScale.second:
-                lessThanSecond += timeDelta;
+                lessThanSecond += (decimal) timeDelta;
                 break;
             case TimeScale.minute:
-                lessThanSecond += timeDelta * 60.0;
+                lessThanSecond += (decimal) (timeDelta * 60.0);
                 break;
             case TimeScale.hour:
-                lessThanSecond += timeDelta * 60.0 * 60.0;
+                lessThanSecond += (decimal) (timeDelta * 60.0 * 60.0);
                 break;
             case TimeScale.day:
-                lessThanSecond += timeDelta * 60.0 * 60.0 * 24.0;
+                lessThanSecond += (decimal) (timeDelta * 60.0 * 60.0 * 24.0);
                 break;
             case TimeScale.week:
-                lessThanSecond += timeDelta * 60.0 * 60.0 * 24.0 * 7.0;
+                lessThanSecond += (decimal) (timeDelta * 60.0 * 60.0 * 24.0 * 7.0);
                 break;
             case TimeScale.month:
-                lessThanSecond += timeDelta * 60.0 * 60.0 * 24.0 * 30.437;
+                lessThanSecond += (decimal) (timeDelta * 60.0 * 60.0 * 24.0 * 30.437);
                 break;
             case TimeScale.year:
-                lessThanSecond += timeDelta * 60.0 * 60.0 * 24.0 * 365.25;
+                lessThanSecond += (decimal) (timeDelta * 60.0 * 60.0 * 24.0 * 365.25);
                 break;
         }
 

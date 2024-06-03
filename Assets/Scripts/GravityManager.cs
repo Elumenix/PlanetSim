@@ -155,7 +155,6 @@ public class GravityManager : MonoBehaviour
         // Reset accelerations
         foreach (GravitationalBody body in planets)
         {
-            body.lastAcceleration = body.acceleration;
             body.acceleration = Vector3d.zero;
         }
 
@@ -228,7 +227,7 @@ public class GravityManager : MonoBehaviour
         // Year needs a much more precise internal time-step or the moon and mercury will fly off
         Time.fixedDeltaTime = newScale == TimeScale.year ? 
             0.001f :         // Will definitely cause lag if scaled up, but that's largely unavoidable
-            .016f;             // Regular time-step. A bit over 60 physics updates per second
+            0.016f;             // Regular time-step. A bit over 60 physics updates per second
         
         // Convert velocity from old timescale to base units (AU per second)
         switch (oldScale)

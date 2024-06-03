@@ -13,6 +13,7 @@ public class CameraController : MonoBehaviour
     public GravityManager planetManager;
     public GameObject circlePrefab;
     private List<ValueTuple<GameObject, float>> circles; // Value 1: Planet, Value 2: Progress in Lerp function
+    public GameObject orientationModel;
     
     // Controls how responsive mouse rotation is
     public float distance = 10.0f; // distance from target
@@ -50,6 +51,7 @@ public class CameraController : MonoBehaviour
         scrollSpeed = distance / 10;
         
         Quaternion rotation = Quaternion.Euler(y, x, 0);
+        orientationModel.transform.rotation = rotation;
         Vector3 position = rotation * new Vector3(0.0f, 0.0f, -distance) + target.position;
 
         transform.rotation = rotation;
@@ -199,6 +201,8 @@ public class CameraController : MonoBehaviour
 
                 transform.rotation = rot;
                 transform.position = pos;
+
+                orientationModel.transform.rotation = rot;
             }
         }
 
@@ -245,6 +249,7 @@ public class CameraController : MonoBehaviour
             if (mouseDown)
             {
                 float middleScreen = Screen.width / 2.0f;
+                float middleScreenY = Screen.height / 2.0f;
 
                 // Direction of axis change should be dependent on the side of the screen that the mouse is on
                 if (mousePosition.x < middleScreen)
@@ -254,6 +259,15 @@ public class CameraController : MonoBehaviour
                 else if (mousePosition.x > middleScreen)
                 {
                     z -= Input.GetAxis("Mouse Y") * ySpeed * 0.02f;
+                }
+                
+                if (mousePosition.y > middleScreenY)
+                {
+                    z += Input.GetAxis("Mouse X") * xSpeed * 0.02f;
+                }
+                else if (mousePosition.y < middleScreenY)
+                {
+                    z -= Input.GetAxis("Mouse X") * xSpeed * 0.02f;
                 }
             }
             else
@@ -266,6 +280,7 @@ public class CameraController : MonoBehaviour
         // Update position of camera, required every frame since planets are moving
         Quaternion rotation = Quaternion.Euler(y, x, z);
         Vector3 position = rotation * new Vector3(0.0f, 0.0f, -distance) + target.position;
+        orientationModel.transform.rotation = rotation;
 
         transform.rotation = rotation;
         transform.position = position;
@@ -344,7 +359,8 @@ public class CameraController : MonoBehaviour
                 circles[i].Item1.transform.localScale *= tarDist / 20f;
                 
                 // Rotates circle to look at the camera
-                circles[i].Item1.transform.LookAt(planet.transform.position * 2 - transform.position);
+                circles[i].Item1.transform
+                    .LookAt(planet.transform.position * 2 - transform.position, _camera.transform.up);
             }
             else
             {

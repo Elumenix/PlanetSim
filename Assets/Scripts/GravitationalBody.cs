@@ -12,7 +12,6 @@ public class GravitationalBody : MonoBehaviour
     public double Mass;
 
     [HideInInspector] public Vector3d acceleration;
-    [HideInInspector] public Vector3d lastAcceleration;
     
     
     // Start is called before the first frame update
