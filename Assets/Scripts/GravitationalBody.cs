@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 //[ExecuteInEditMode]
 public class GravitationalBody : MonoBehaviour
@@ -11,20 +12,18 @@ public class GravitationalBody : MonoBehaviour
     public double RotationSpeed;
     public double Mass;
 
-    [HideInInspector] public Vector3d acceleration;
+    [FormerlySerializedAs("acceleration")] [HideInInspector] public Vector3d Acceleration;
     
     
-    // Start is called before the first frame update
     void Start()
     {
-        acceleration = Vector3d.zero;
+        Acceleration = Vector3d.zero;
     }
 
-    // Update is called once per frame
+    // Doesn't need to be fixed Update because transform doesn't need to be updated every calculation, only when drawn
     void Update()
     {
-        // still runs in editor mode
-        transform.localPosition = new Vector3((float)Position.x, (float)Position.y, (float)Position.z);
+        transform.position = new Vector3((float)Position.x, (float)Position.y, (float)Position.z);
     }
 
     private void OnDrawGizmos()

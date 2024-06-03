@@ -84,11 +84,11 @@ public class GravityManager : MonoBehaviour
         
         // Using Accelerations from last frame (k1)
         List<Vector3d> k1_velocities = new List<Vector3d>();
-        List<Vector3d> k1_positions = new List<Vector3d>();
+        List<Vector3d> k1_accelerations = new List<Vector3d>();
         foreach (GravitationalBody body in planets)
         {
             k1_velocities.Add(body.Velocity);
-            k1_positions.Add(body.acceleration);
+            k1_accelerations.Add(body.Acceleration);
         }
 
         // Calculate mid-point accelerations (k2)
@@ -96,15 +96,16 @@ public class GravityManager : MonoBehaviour
         {
             GravitationalBody body = planets[i];
             body.Position = initialPositions[i] + 0.5 * timeDir * Time.fixedDeltaTime * k1_velocities[i];
-            body.Velocity = initialVelocities[i] + 0.5 * timeDir * Time.fixedDeltaTime * k1_positions[i];
+            body.Velocity = initialVelocities[i] + 0.5 * timeDir * Time.fixedDeltaTime * k1_accelerations[i];
         }
+        
         CalculateAccelerations();
         List<Vector3d> k2_velocities = new List<Vector3d>();
-        List<Vector3d> k2_positions = new List<Vector3d>();
+        List<Vector3d> k2_accelerations = new List<Vector3d>();
         foreach (GravitationalBody body in planets)
         {
             k2_velocities.Add(body.Velocity);
-            k2_positions.Add(body.acceleration);
+            k2_accelerations.Add(body.Acceleration);
         }
 
         // Calculate second mid-point accelerations (k3)
@@ -112,15 +113,16 @@ public class GravityManager : MonoBehaviour
         {
             GravitationalBody body = planets[i];
             body.Position = initialPositions[i] + 0.5 * timeDir * Time.fixedDeltaTime * k2_velocities[i];
-            body.Velocity = initialVelocities[i] + 0.5 * timeDir * Time.fixedDeltaTime * k2_positions[i];
+            body.Velocity = initialVelocities[i] + 0.5 * timeDir * Time.fixedDeltaTime * k2_accelerations[i];
         }
+        
         CalculateAccelerations();
         List<Vector3d> k3_velocities = new List<Vector3d>();
-        List<Vector3d> k3_positions = new List<Vector3d>();
+        List<Vector3d> k3_accelerations = new List<Vector3d>();
         foreach (GravitationalBody body in planets)
         {
             k3_velocities.Add(body.Velocity);
-            k3_positions.Add(body.acceleration);
+            k3_accelerations.Add(body.Acceleration);
         }
 
         // Calculate end-point accelerations (k4)
@@ -128,15 +130,16 @@ public class GravityManager : MonoBehaviour
         {
             GravitationalBody body = planets[i];
             body.Position = initialPositions[i] + timeDir * Time.fixedDeltaTime * k3_velocities[i];
-            body.Velocity = initialVelocities[i] + timeDir * Time.fixedDeltaTime * k3_positions[i];
+            body.Velocity = initialVelocities[i] + timeDir * Time.fixedDeltaTime * k3_accelerations[i];
         }
+        
         CalculateAccelerations();
         List<Vector3d> k4_velocities = new List<Vector3d>();
-        List<Vector3d> k4_positions = new List<Vector3d>();
+        List<Vector3d> k4_accelerations = new List<Vector3d>();
         foreach (GravitationalBody body in planets)
         {
             k4_velocities.Add(body.Velocity);
-            k4_positions.Add(body.acceleration);
+            k4_accelerations.Add(body.Acceleration);
         }
 
         // Update positions and velocities using RK4 method
@@ -146,7 +149,7 @@ public class GravityManager : MonoBehaviour
             body.Position = initialPositions[i] + (1.0 / 6.0) * timeDir * Time.fixedDeltaTime *
                 (k1_velocities[i] + 2 * k2_velocities[i] + 2 * k3_velocities[i] + k4_velocities[i]);
             body.Velocity = initialVelocities[i] + (1.0 / 6.0) * timeDir * Time.fixedDeltaTime *
-                (k1_positions[i] + 2 * k2_positions[i] + 2 * k3_positions[i] + k4_positions[i]);
+                (k1_accelerations[i] + 2 * k2_accelerations[i] + 2 * k3_accelerations[i] + k4_accelerations[i]);
         }
     }
 
@@ -155,7 +158,7 @@ public class GravityManager : MonoBehaviour
         // Reset accelerations
         foreach (GravitationalBody body in planets)
         {
-            body.acceleration = Vector3d.zero;
+            body.Acceleration = Vector3d.zero;
         }
 
         // Calculate new accelerations
@@ -178,8 +181,8 @@ public class GravityManager : MonoBehaviour
                     Vector3d force = direction.normalized * forceMagnitude;
                     
                     // Apply forces
-                    body1.acceleration += (force / body1.Mass);
-                    body2.acceleration += (-force / body2.Mass); // Apply force in opposite direction
+                    body1.Acceleration += (force / body1.Mass);
+                    body2.Acceleration += (-force / body2.Mass); // Apply force in opposite direction
                 }
             }
         }
@@ -187,11 +190,18 @@ public class GravityManager : MonoBehaviour
     
     double GetGravitationalConstant(TimeScale scale)
     {
-        // The gravitational constant in N*(m^2)/(kg^2)
-        double baseG = 6.67430e-11;
+        // Calculations for G need to be really precise since every time-step and
+        // calculation uses it multiple times every frame for acceleration 
+
+        double baseG = 6.674484e-11;
+        double au = 149597870.7e03; // in m
+        double earthMass = 5.9722e24; // in kg
+
+        // Needs to be squared for calculations
+        au *= au;
 
         // Convert G to N*(AU^2)/(Earth Mass^2)
-        G = baseG * ((1.496e+11 * 1.496e+11) / 5.972e+24) / 1500;
+        G = (baseG * (au / earthMass) / 1500.0); // Adjusted to the 1 au = 1500 units scaling
 
         switch (scale)
         {
