@@ -197,11 +197,8 @@ public class GravityManager : MonoBehaviour
         double au = 149597870.7e03; // in m
         double earthMass = 5.9722e24; // in kg
 
-        // Needs to be squared for calculations
-        au *= au;
-
-        // Convert G to N*(AU^2)/(Earth Mass^2)
-        G = (baseG * (au / earthMass) / 1500.0); // Adjusted to the 1 au = 1500 units scaling
+        // Convert G to (AU^3)/((Earth Mass)(TimeScale^2)) : Time scale part is done in the switch statement below
+        G = baseG * (earthMass / Math.Pow(au, 3)) * 1500; // 1500 is to preserve the rule that 1 au equals 1500 units in unity
 
         switch (scale)
         {
