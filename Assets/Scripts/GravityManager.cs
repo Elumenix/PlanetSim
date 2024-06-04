@@ -48,6 +48,12 @@ public class GravityManager : MonoBehaviour
 
     void FixedUpdate()
     {
+        // No point in running calculations that won't do anything
+        if (Time.timeScale == 0)
+        {
+            return;
+        }
+        
         // Gravitational constant has a time parameter, so it will need to be updated
         if (previousTimeScale != TimeScale)
         {

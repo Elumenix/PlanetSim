@@ -1,11 +1,8 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using Debug = UnityEngine.Debug;
 
 public class CameraController : MonoBehaviour
 {
@@ -19,14 +16,18 @@ public class CameraController : MonoBehaviour
     public float distance = 10.0f; // distance from target
     public float xSpeed = 120.0f; // rotation speed around target
     public float ySpeed = 120.0f;
-    public float scrollSpeed = 5;
-    private bool mouseDown; // tracked so that first clicking on screen doesn't teleport camera
+    public float scrollSpeed;
+    private bool mouseDown; // Tracked so that first clicking on screen doesn't teleport camera
     private bool dragging; // Tracked so that releasing mouse after drag doesn't suddenly teleport to a planet
+    private int clickTimer = 15;
+    private Quaternion PreviousRotation; // Tracks spin of the planet
+    private bool followPlanetRotation;
+    
 
     // Euler rotation values for x and y
-    private float x = 0.0f;
-    private float y = 0.0f;
-    private float z = 0.0f;
+    private float x;
+    private float y;
+    private float z;
 
     // Variables that track circle Ui changes
     private int lastIndexHovered;
@@ -37,25 +38,31 @@ public class CameraController : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        followPlanetRotation = true;
+        
         _camera = Camera.main;
         minScale = new Vector3(0.2f, 0.2f, 0.2f);
         maxScale = new Vector3(0.3f, 0.3f, 0.3f);
         
         circles = new List<ValueTuple<GameObject, float>>();
         
-        Vector3 angles = transform.eulerAngles;
-        x = angles.y;
-        y = angles.x;
-        
         distance = target.transform.localScale.x * 10f;
-        scrollSpeed = distance / 10;
+        scrollSpeed = distance / 4;
         
-        Quaternion rotation = Quaternion.Euler(y, x, 0);
-        orientationModel.transform.rotation = rotation;
+        // Match rotation vector of target planet
+        Quaternion rotation = target.rotation;
         Vector3 position = rotation * new Vector3(0.0f, 0.0f, -distance) + target.position;
 
         transform.rotation = rotation;
         transform.position = position;
+        orientationModel.transform.rotation = rotation;
+        PreviousRotation = rotation;
+        
+        // Required change so end up orientation update doesn't set its own values
+        Vector3 angles = target.transform.eulerAngles;
+        x = angles.y; // Assign pitch (side-to-side) to x
+        y = angles.x; // Assign yaw (up-and-down) to y
+        z = angles.z; // Assign roll (forward-and-backward) to z
 
         // Create a UI circle for each planet
         foreach (GravitationalBody planet in planetManager.planets)
@@ -64,50 +71,23 @@ public class CameraController : MonoBehaviour
             circle.GetComponentInChildren<TextMeshPro>().text = planet.name;
             
             SpriteRenderer circlePointer = circle.GetComponent<SpriteRenderer>();
-            Color newColor;
-            
-            switch(planet.name)
+
+            Color newColor = planet.name switch
             {
-                case "Mercury":
-                    newColor = new Color(151f / 255, 151f / 255, 159f / 255);
-                    break;
-                
-                case "Venus":
-                    newColor = new Color(187f / 255, 183f / 255, 171f / 255);
-                    break;
-                
-                case "Earth":
-                    newColor = new Color(140f / 255, 177f / 255, 222f / 255);
-                    break;
-                
-                case "Mars":
-                    newColor = new Color(226f / 255, 123f / 255, 88f / 255);
-                    break;
-                
-                case "Jupiter":
-                    newColor = new Color(200f / 255, 139f / 255, 58f / 255);
-                    break;
-                
-                case "Saturn":
-                    newColor = new Color(195f / 255, 161f / 255, 113f / 255);
-                    break;
-                
-                case "Uranus":
-                    newColor = new Color(187f / 255, 225f / 255, 228f / 255);
-                    break;
-                
-                case "Neptune":
-                    newColor = new Color(33f / 255, 35f / 255, 84f / 255);
-                    break;
-                
-                default:
-                    newColor = Color.white;
-                    break;
-            }
+                "Mercury" => new Color(151f / 255, 151f / 255, 159f / 255),
+                "Venus" => new Color(187f / 255, 183f / 255, 171f / 255),
+                "Earth" => new Color(140f / 255, 177f / 255, 222f / 255),
+                "Mars" => new Color(226f / 255, 123f / 255, 88f / 255),
+                "Jupiter" => new Color(200f / 255, 139f / 255, 58f / 255),
+                "Saturn" => new Color(195f / 255, 161f / 255, 113f / 255),
+                "Uranus" => new Color(187f / 255, 225f / 255, 228f / 255),
+                "Neptune" => new Color(33f / 255, 35f / 255, 84f / 255),
+                _ => Color.white
+            };
 
             circlePointer.color = newColor;
             
-            // I don't care about the moon
+            // I don't care about the moon or sun
             if (planet.name is "Moon" or "Sun")
             {
                 circle.SetActive(false);
@@ -130,12 +110,15 @@ public class CameraController : MonoBehaviour
         {
             // Following code linearly interpolates scale of all planets based on which was hovered the last update
             #region PreviousScalingChange
+
+            // If timescale is 0, try to emulate a speed of deltaTime
+            float necessaryDelta = Time.timeScale == 0 ? .01666f : Time.deltaTime;
             
             // Mouse hover for last frame is applied. The hovered circle increases in size while all others decrease
             float timeValue =
                 lastIndexHovered == i && !overUI
-                    ? Mathf.Clamp(circles[i].Item2 + Time.deltaTime * 5, 0, 1)   // Increase
-                    : Mathf.Clamp(circles[i].Item2 - Time.deltaTime * 5, 0, 1);  // Decrease
+                    ? Mathf.Clamp(circles[i].Item2 + necessaryDelta * 5, 0, 1)   // Increase
+                    : Mathf.Clamp(circles[i].Item2 - necessaryDelta * 5, 0, 1);  // Decrease
 
             if (!Mathf.Approximately(timeValue, circles[i].Item2))
             {
@@ -183,26 +166,22 @@ public class CameraController : MonoBehaviour
         // Clicking while over Ui shouldn't affect scene
         if (!overUI)
         {
-            // Go to different Planet
-            if (Input.GetMouseButtonUp(0) && lastIndexHovered != -1 && !dragging)
+            // Go to different Planet : only if not dragging or click completes within 15 frames of press
+            if (Input.GetMouseButtonUp(0) && lastIndexHovered != -1 && (!dragging || clickTimer > 0))
             {
                 target = planetManager.planets[lastIndexHovered].transform;
-
-                Vector3 angles = transform.eulerAngles;
-                x = angles.y;
-                y = angles.x;
-                z = angles.z;
-
                 distance = target.transform.localScale.x * 10f;
                 scrollSpeed = distance / 4;
-
-                Quaternion rot = Quaternion.Euler(y, x, z);
-                Vector3 pos = rot * new Vector3(0.0f, 0.0f, -distance) + target.position;
-
-                transform.rotation = rot;
+                
+                Vector3 pos = target.rotation * new Vector3(0.0f, 0.0f, -distance) + target.position;
+                
+                // Required change so end up orientation update doesn't set its own values
+                Vector3 angles = target.transform.eulerAngles;
+                x = angles.y; // Assign pitch (side-to-side) to x
+                y = angles.x; // Assign yaw (up-and-down) to y
+                z = angles.z; // Assign roll (forward-and-backward) to z
+                
                 transform.position = pos;
-
-                orientationModel.transform.rotation = rot;
             }
         }
 
@@ -218,6 +197,8 @@ public class CameraController : MonoBehaviour
         
         if (Input.GetMouseButton(0))
         {
+            clickTimer--; // Decrement
+            
             // Prevents teleportation of camera on the first frame you click on the window
             if (mouseDown)
             {
@@ -240,6 +221,7 @@ public class CameraController : MonoBehaviour
         }
         else
         {
+            clickTimer = 15;
             dragging = false;
         }
         
@@ -278,12 +260,16 @@ public class CameraController : MonoBehaviour
         
         
         // Update position of camera, required every frame since planets are moving
-        Quaternion rotation = Quaternion.Euler(y, x, z);
+        // Z Quaternion is added separately so that it doesn't affect the x/y mouse direction
+        Quaternion rotationXY = Quaternion.Euler(y, x, 0);
+        Quaternion rotationZ = Quaternion.Euler(0, 0, z);
+        Quaternion rotation = rotationZ * rotationXY; // Correct multiplication order to make x/y consistent
         Vector3 position = rotation * new Vector3(0.0f, 0.0f, -distance) + target.position;
         orientationModel.transform.rotation = rotation;
 
         transform.rotation = rotation;
         transform.position = position;
+        orientationModel.transform.rotation = rotation;
 
         #endregion
         
@@ -314,26 +300,24 @@ public class CameraController : MonoBehaviour
                         circles[i].Item1.SetActive(false);
                         continue;
                     }
-                    else
-                    {
-                        circles[i].Item1.SetActive(true);
-                    }
+
+                    circles[i].Item1.SetActive(true);
                 }
             }
 
-            // Don't want to see the moon ui at all
-            if (planet.name is "Moon" or "Sun")
+            switch (planet.name)
             {
-                circles[i].Item1.SetActive(false);
-                continue;
-            }
-            if (planet.name is "Earth" && planetManager.planets[4].transform == target.transform)
-            {
+                // Don't want to see the moon ui at all
+                case "Moon" or "Sun":
+                    circles[i].Item1.SetActive(false);
+                    continue;
+
                 // Don't show Earth circle if focused on the moon
-                circles[i].Item1.SetActive(false);
-                continue; 
+                case "Earth" when planetManager.planets[4].transform == target.transform:
+                    circles[i].Item1.SetActive(false);
+                    continue;
             }
-            
+
             Vector3 dir = planet.transform.position - position;
             float dist = dir.magnitude;
             float tarDist = (target.transform.position - _camera!.transform.position).magnitude;
@@ -341,7 +325,7 @@ public class CameraController : MonoBehaviour
             // Prevents 3-dimensional z-fighting. Unfortunately needs pretty expensive method calls
             // Draws things closer to the camera first, surprisingly giving a lot more depth
             Renderer rend = circles[i].Item1.GetComponent<Renderer>();
-            rend.sortingOrder = (500 - (int)(Mathf.Sqrt(dist))); // Furthest: neptune to uranus at ~275
+            rend.sortingOrder = (500 - (int)((Mathf.Sqrt(dist)) * 1.75f)); // Furthest sqrt: neptune to uranus at ~275
 
             // Don't draw the target planet at all, or planets really close to the camera
             if (planet.transform != target &&
