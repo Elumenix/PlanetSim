@@ -6,7 +6,7 @@ using UnityEngine.EventSystems;
 
 public class CameraController : MonoBehaviour
 {
-    public Transform target; // the object to follow
+    public GravitationalBody target; // the object to follow
     public GravityManager planetManager;
     public GameObject circlePrefab;
     private List<ValueTuple<GameObject, float>> circles; // Value 1: Planet, Value 2: Progress in Lerp function
@@ -20,7 +20,6 @@ public class CameraController : MonoBehaviour
     private bool mouseDown; // Tracked so that first clicking on screen doesn't teleport camera
     private bool dragging; // Tracked so that releasing mouse after drag doesn't suddenly teleport to a planet
     private int clickTimer = 15;
-    private Quaternion PreviousRotation; // Tracks spin of the planet
     private bool followPlanetRotation;
     
 
@@ -50,13 +49,12 @@ public class CameraController : MonoBehaviour
         scrollSpeed = distance / 4;
         
         // Match rotation vector of target planet
-        Quaternion rotation = target.rotation;
-        Vector3 position = rotation * new Vector3(0.0f, 0.0f, -distance) + target.position;
+        Quaternion rotation = target.transform.rotation;
+        Vector3 position = rotation * new Vector3(0.0f, 0.0f, -distance) + target.transform.position;
 
         transform.rotation = rotation;
         transform.position = position;
         orientationModel.transform.rotation = rotation;
-        PreviousRotation = rotation;
         
         // Required change so end up orientation update doesn't set its own values
         Vector3 angles = target.transform.eulerAngles;
@@ -169,11 +167,11 @@ public class CameraController : MonoBehaviour
             // Go to different Planet : only if not dragging or click completes within 15 frames of press
             if (Input.GetMouseButtonUp(0) && lastIndexHovered != -1 && (!dragging || clickTimer > 0))
             {
-                target = planetManager.planets[lastIndexHovered].transform;
+                target = planetManager.planets[lastIndexHovered];
                 distance = target.transform.localScale.x * 10f;
                 scrollSpeed = distance / 4;
                 
-                Vector3 pos = target.rotation * new Vector3(0.0f, 0.0f, -distance) + target.position;
+                Vector3 pos = target.transform.rotation * new Vector3(0.0f, 0.0f, -distance) + target.transform.position;
                 
                 // Required change so end up orientation update doesn't set its own values
                 Vector3 angles = target.transform.eulerAngles;
@@ -261,10 +259,14 @@ public class CameraController : MonoBehaviour
         
         // Update position of camera, required every frame since planets are moving
         // Z Quaternion is added separately so that it doesn't affect the x/y mouse direction
-        Quaternion rotationXY = Quaternion.Euler(y, x, 0);
+        Quaternion rotationXY = Quaternion.Euler(y, x, z);
         Quaternion rotationZ = Quaternion.Euler(0, 0, z);
         Quaternion rotation = rotationZ * rotationXY; // Correct multiplication order to make x/y consistent
-        Vector3 position = rotation * new Vector3(0.0f, 0.0f, -distance) + target.position;
+
+        // Works for camera rotation but not original camera controls
+        rotation = Quaternion.Euler(y, x, z);
+        
+        Vector3 position = rotation * new Vector3(0.0f, 0.0f, -distance) + target.transform.position;
         orientationModel.transform.rotation = rotation;
 
         transform.rotation = rotation;
@@ -328,7 +330,7 @@ public class CameraController : MonoBehaviour
             rend.sortingOrder = (500 - (int)((Mathf.Sqrt(dist)) * 1.75f)); // Furthest sqrt: neptune to uranus at ~275
 
             // Don't draw the target planet at all, or planets really close to the camera
-            if (planet.transform != target &&
+            if (planet.transform != target.transform &&
                 dist > planet.transform.localScale.x + Mathf.Pow(planet.transform.localScale.x, 2))
             {
                 circles[i].Item1.SetActive(true);
@@ -358,4 +360,119 @@ public class CameraController : MonoBehaviour
         // planet hover for next frame is saved
         lastIndexHovered = indexHovered;
     }
+
+    public void FixedUpdate()
+    {
+        if (followPlanetRotation && Time.timeScale != 0)
+        {
+            int timeDir = Time.deltaTime > 0 ? 1 : -1;
+
+            // Calculate the change in rotation : I actually have no clue why dividing by 2 matches up here
+            float deltaRotation = (float) (target.RotationSpeed / 2 * timeDir * Time.fixedDeltaTime);
+
+            var rotationAxis = transform.InverseTransformDirection(target.transform.up);
+            transform.Rotate(rotationAxis, deltaRotation, Space.Self);
+
+
+            /*transform.rotation = target.transform.rotation;
+            
+            Vector3 euler = transform.eulerAngles;
+            
+            x = euler.y;
+            y = euler.x;
+            z = euler.z;*/
+
+
+            Vector3 targetUp = transform.InverseTransformDirection(target.transform.up);
+            transform.Rotate(targetUp, deltaRotation, Space.Self);
+
+
+            Vector3 planetEuler = transform.eulerAngles;
+            x = planetEuler.y;
+            y = planetEuler.x;
+            z = planetEuler.z;
+
+
+            /*transform.Rotate(transform.InverseTransformDirection(target.transform.up), deltaRotation, Space.Self);
+            x = transform.eulerAngles.x;
+            y = transform.eulerAngles.y;
+            z = transform.eulerAngles.z;*/
+
+            // Apply the rotation around the Y-axis
+            //y += deltaRotation;
+
+            // Convert the change in rotation to Euler angles
+            //Vector3 rotationAxis = transform.InverseTransformDirection(target.transform.up);
+
+            // Create a quaternion representing the rotation around the planet's up axis
+            //Quaternion rotationChange = Quaternion.AngleAxis(deltaRotation, rotationAxis);
+
+            // Apply the rotation in world space
+            //Quaternion newRotation = transform.rotation * rotationChange;
+
+            // Update x, y, and z with the new rotation angles
+            //Vector3 rotationAxis = transform.InverseTransformDirection(target.transform.up);
+            //Quaternion rotationChange = Quaternion.AngleAxis(deltaRotation, transform.InverseTransformDirection(target.transform.up));
+
+            /*Quaternion targetRotation = Quaternion.Euler(target.transform.rotation.eulerAngles * deltaRotation);
+            Quaternion currentRotation = Quaternion.Euler(0, 0, z) * Quaternion.Euler(y, x, 0);
+            Quaternion newRotation = currentRotation * targetRotation;
+            //Vector3 euler = rotationChange.eulerAngles;
+            Vector3 newEulerAngles = newRotation.eulerAngles;
+            x = newEulerAngles.y;
+            y = newEulerAngles.x;
+            z = newEulerAngles.z;*/
+            /*
+            x += deltaRotation * rotationAxis.y;
+            y += deltaRotation * rotationAxis.x;
+            z += deltaRotation * rotationAxis.z;*/
+        }
+    }
+    
+    public static Vector3 QuaternionToEulerYXZ(Quaternion q)
+    {
+        Vector3 euler;
+
+        // Derivation from http://www.geometrictools.com/Documentation/EulerAngles.pdf
+        // Order of rotations: YXZ
+        double q0 = q.w; // w
+        double q1 = q.y; // y
+        double q2 = q.x; // x
+        double q3 = q.z; // z
+
+        double q0q0 = q0*q0;
+        double q1q1 = q1*q1;
+        double q2q2 = q2*q2;
+        double q3q3 = q3*q3;
+
+        double q0q2 = q0*q2;
+        double q0q3 = q0*q3;
+        double q1q2 = q1*q2;
+        double q1q3 = q1*q3;
+
+        double d = q1q2 + q0q3;
+        if (Math.Abs(d-0.5) < 0.01) // North pole singularity
+        {
+            euler.x = 0;
+            euler.y = (float)(2 * Math.Atan2(q2, q0));
+            euler.z = (float)Math.PI/2;
+        }
+        else if (Math.Abs(d+0.5) < 0.01) // South pole singularity
+        {
+            euler.x = 0;
+            euler.y = (float)(-2 * Math.Atan2(q2, q0));
+            euler.z = (float)-Math.PI/2;
+        }
+        else
+        {
+            euler.x = (float)Math.Atan2(2*(q0q2 - q1q3), q0q0 - q1q1 + q2q2 - q3q3);
+            euler.y = (float)Math.Atan2(2*(q0q3 + q1q2), q0q0 + q1q1 - q2q2 + q3q3);
+            euler.z = (float)Math.Asin(2*d);
+        }
+
+        return euler;
+    }
+
+
+
 }
