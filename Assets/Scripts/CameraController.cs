@@ -21,12 +21,6 @@ public class CameraController : MonoBehaviour
     private bool dragging; // Tracked so that releasing mouse after drag doesn't suddenly teleport to a planet
     private int clickTimer = 15;
     private bool followPlanetRotation;
-    
-
-    // Euler rotation values for x and y
-    private float x;
-    private float y;
-    private float z;
 
     // Variables that track circle Ui changes
     private int lastIndexHovered;
@@ -40,6 +34,8 @@ public class CameraController : MonoBehaviour
         followPlanetRotation = true;
         
         _camera = Camera.main;
+        
+        // Circles are scaled down a lot to work well in scene, they only change this much
         minScale = new Vector3(0.2f, 0.2f, 0.2f);
         maxScale = new Vector3(0.3f, 0.3f, 0.3f);
         
@@ -48,19 +44,12 @@ public class CameraController : MonoBehaviour
         distance = target.transform.localScale.x * 10f;
         scrollSpeed = distance / 4;
         
-        // Match rotation vector of target planet
-        Quaternion rotation = target.transform.rotation;
-        Vector3 position = rotation * new Vector3(0.0f, 0.0f, -distance) + target.transform.position;
-
-        transform.rotation = rotation;
+        // Match rotation vector of target planet and position accordingly
+        Vector3 position = target.transform.rotation * new Vector3(0.0f, 0.0f, -distance) + target.transform.position;
+        transform.rotation = target.transform.rotation;
         transform.position = position;
-        orientationModel.transform.rotation = rotation;
+        orientationModel.transform.rotation = target.transform.rotation;
         
-        // Required change so end up orientation update doesn't set its own values
-        Vector3 angles = target.transform.eulerAngles;
-        x = angles.y; // Assign pitch (side-to-side) to x
-        y = angles.x; // Assign yaw (up-and-down) to y
-        z = angles.z; // Assign roll (forward-and-backward) to z
 
         // Create a UI circle for each planet
         foreach (GravitationalBody planet in planetManager.planets)
@@ -161,28 +150,30 @@ public class CameraController : MonoBehaviour
         // Camera direction and zoom will be modified based on user controls
         #region CameraOrientationUpdate
 
+        // Variables are established here to be incremented throughout this section 
+        float deltaX = 0; // Assign pitch (side-to-side) to x
+        float deltaY = 0; // Assign yaw (up-and-down) to y
+        float deltaZ = 0; // Assign roll (forward-and-backward) to z
+        
         // Clicking while over Ui shouldn't affect scene
         if (!overUI)
         {
             // Go to different Planet : only if not dragging or click completes within 15 frames of press
             if (Input.GetMouseButtonUp(0) && lastIndexHovered != -1 && (!dragging || clickTimer > 0))
             {
+                // Switch tracked planet and scale movement values relative to it's size
                 target = planetManager.planets[lastIndexHovered];
                 distance = target.transform.localScale.x * 10f;
                 scrollSpeed = distance / 4;
                 
+                // Position camera relative to the new target planet
                 Vector3 pos = target.transform.rotation * new Vector3(0.0f, 0.0f, -distance) + target.transform.position;
-                
-                // Required change so end up orientation update doesn't set its own values
-                Vector3 angles = target.transform.eulerAngles;
-                x = angles.y; // Assign pitch (side-to-side) to x
-                y = angles.x; // Assign yaw (up-and-down) to y
-                z = angles.z; // Assign roll (forward-and-backward) to z
-                
                 transform.position = pos;
+                transform.rotation = target.transform.rotation;
             }
         }
 
+        // Scroll Wheel affects distance to the planet
         if (Input.mouseScrollDelta.y != 0 && mouseDown)
         {
             distance -= Input.mouseScrollDelta.y * scrollSpeed;
@@ -200,14 +191,11 @@ public class CameraController : MonoBehaviour
             // Prevents teleportation of camera on the first frame you click on the window
             if (mouseDown)
             {
-                float saveX = x;
-                float saveY = y;
-                
-                x += Input.GetAxis("Mouse X") * xSpeed * 0.02f;
-                y -= Input.GetAxis("Mouse Y") * ySpeed * 0.02f;
+                deltaX += Input.GetAxis("Mouse X") * xSpeed * 0.02f;
+                deltaY -= (Input.GetAxis("Mouse Y") * ySpeed * 0.02f);
 
                 // Mouse is being used for navigation, not clicking on a planet
-                if (!Mathf.Approximately(saveX, x) || !Mathf.Approximately(saveY, y))
+                if (!Mathf.Approximately(0, deltaX) || !Mathf.Approximately(0, deltaX))
                 {
                     dragging = true;
                 }
@@ -234,20 +222,20 @@ public class CameraController : MonoBehaviour
                 // Direction of axis change should be dependent on the side of the screen that the mouse is on
                 if (mousePosition.x < middleScreen)
                 {
-                    z += Input.GetAxis("Mouse Y") * ySpeed * 0.02f;
+                    deltaZ += Input.GetAxis("Mouse Y") * ySpeed * 0.02f;
                 }
                 else if (mousePosition.x > middleScreen)
                 {
-                    z -= Input.GetAxis("Mouse Y") * ySpeed * 0.02f;
+                    deltaZ -= Input.GetAxis("Mouse Y") * ySpeed * 0.02f;
                 }
                 
                 if (mousePosition.y > middleScreenY)
                 {
-                    z += Input.GetAxis("Mouse X") * xSpeed * 0.02f;
+                    deltaZ += Input.GetAxis("Mouse X") * xSpeed * 0.02f;
                 }
                 else if (mousePosition.y < middleScreenY)
                 {
-                    z -= Input.GetAxis("Mouse X") * xSpeed * 0.02f;
+                    deltaZ -= Input.GetAxis("Mouse X") * xSpeed * 0.02f;
                 }
             }
             else
@@ -259,16 +247,14 @@ public class CameraController : MonoBehaviour
         
         // Update position of camera, required every frame since planets are moving
         // Z Quaternion is added separately so that it doesn't affect the x/y mouse direction
-        Quaternion rotationXY = Quaternion.Euler(y, x, z);
-        Quaternion rotationZ = Quaternion.Euler(0, 0, z);
-        Quaternion rotation = rotationZ * rotationXY; // Correct multiplication order to make x/y consistent
-
-        // Works for camera rotation but not original camera controls
-        rotation = Quaternion.Euler(y, x, z);
+        Quaternion rotationXY = Quaternion.Euler(deltaY, deltaX, 0);
+        Quaternion rotationZ = Quaternion.Euler(0, 0, deltaZ);
+        Quaternion rotation = transform.rotation * rotationZ * rotationXY; // Correct multiplication order to make x/y consistent
         
+        // Update position of camera accordingly
         Vector3 position = rotation * new Vector3(0.0f, 0.0f, -distance) + target.transform.position;
-        orientationModel.transform.rotation = rotation;
 
+        // Make sure everything fits the new orientation
         transform.rotation = rotation;
         transform.position = position;
         orientationModel.transform.rotation = rotation;
@@ -365,114 +351,14 @@ public class CameraController : MonoBehaviour
     {
         if (followPlanetRotation && Time.timeScale != 0)
         {
-            int timeDir = Time.deltaTime > 0 ? 1 : -1;
-
-            // Calculate the change in rotation : I actually have no clue why dividing by 2 matches up here
-            float deltaRotation = (float) (target.RotationSpeed / 2 * timeDir * Time.fixedDeltaTime);
-
-            var rotationAxis = transform.InverseTransformDirection(target.transform.up);
-            transform.Rotate(rotationAxis, deltaRotation, Space.Self);
-
-
-            /*transform.rotation = target.transform.rotation;
+            // Reverse Direction if time is reversed
+            int timeDir = !planetManager.reversed ? 1 : -1;
             
-            Vector3 euler = transform.eulerAngles;
-            
-            x = euler.y;
-            y = euler.x;
-            z = euler.z;*/
-
-
-            Vector3 targetUp = transform.InverseTransformDirection(target.transform.up);
-            transform.Rotate(targetUp, deltaRotation, Space.Self);
-
-
-            Vector3 planetEuler = transform.eulerAngles;
-            x = planetEuler.y;
-            y = planetEuler.x;
-            z = planetEuler.z;
-
-
-            /*transform.Rotate(transform.InverseTransformDirection(target.transform.up), deltaRotation, Space.Self);
-            x = transform.eulerAngles.x;
-            y = transform.eulerAngles.y;
-            z = transform.eulerAngles.z;*/
-
-            // Apply the rotation around the Y-axis
-            //y += deltaRotation;
-
-            // Convert the change in rotation to Euler angles
-            //Vector3 rotationAxis = transform.InverseTransformDirection(target.transform.up);
-
-            // Create a quaternion representing the rotation around the planet's up axis
-            //Quaternion rotationChange = Quaternion.AngleAxis(deltaRotation, rotationAxis);
-
-            // Apply the rotation in world space
-            //Quaternion newRotation = transform.rotation * rotationChange;
-
-            // Update x, y, and z with the new rotation angles
-            //Vector3 rotationAxis = transform.InverseTransformDirection(target.transform.up);
-            //Quaternion rotationChange = Quaternion.AngleAxis(deltaRotation, transform.InverseTransformDirection(target.transform.up));
-
-            /*Quaternion targetRotation = Quaternion.Euler(target.transform.rotation.eulerAngles * deltaRotation);
-            Quaternion currentRotation = Quaternion.Euler(0, 0, z) * Quaternion.Euler(y, x, 0);
-            Quaternion newRotation = currentRotation * targetRotation;
-            //Vector3 euler = rotationChange.eulerAngles;
-            Vector3 newEulerAngles = newRotation.eulerAngles;
-            x = newEulerAngles.y;
-            y = newEulerAngles.x;
-            z = newEulerAngles.z;*/
-            /*
-            x += deltaRotation * rotationAxis.y;
-            y += deltaRotation * rotationAxis.x;
-            z += deltaRotation * rotationAxis.z;*/
+            // This is a series of vector/quaternion transformations to make the camera rotate around the planet
+            // at teh exact same speed that the planet is rotating, making it look still
+            float deltaRotation = (float) (target.RotationSpeed * timeDir * Time.fixedDeltaTime);
+            Vector3 rotationAxis = transform.InverseTransformDirection(target.transform.up); // Aligns camera to planet
+            transform.Rotate(rotationAxis, deltaRotation, Space.Self); // transformation relative to camera
         }
     }
-    
-    public static Vector3 QuaternionToEulerYXZ(Quaternion q)
-    {
-        Vector3 euler;
-
-        // Derivation from http://www.geometrictools.com/Documentation/EulerAngles.pdf
-        // Order of rotations: YXZ
-        double q0 = q.w; // w
-        double q1 = q.y; // y
-        double q2 = q.x; // x
-        double q3 = q.z; // z
-
-        double q0q0 = q0*q0;
-        double q1q1 = q1*q1;
-        double q2q2 = q2*q2;
-        double q3q3 = q3*q3;
-
-        double q0q2 = q0*q2;
-        double q0q3 = q0*q3;
-        double q1q2 = q1*q2;
-        double q1q3 = q1*q3;
-
-        double d = q1q2 + q0q3;
-        if (Math.Abs(d-0.5) < 0.01) // North pole singularity
-        {
-            euler.x = 0;
-            euler.y = (float)(2 * Math.Atan2(q2, q0));
-            euler.z = (float)Math.PI/2;
-        }
-        else if (Math.Abs(d+0.5) < 0.01) // South pole singularity
-        {
-            euler.x = 0;
-            euler.y = (float)(-2 * Math.Atan2(q2, q0));
-            euler.z = (float)-Math.PI/2;
-        }
-        else
-        {
-            euler.x = (float)Math.Atan2(2*(q0q2 - q1q3), q0q0 - q1q1 + q2q2 - q3q3);
-            euler.y = (float)Math.Atan2(2*(q0q3 + q1q2), q0q0 + q1q1 - q2q2 + q3q3);
-            euler.z = (float)Math.Asin(2*d);
-        }
-
-        return euler;
-    }
-
-
-
 }

@@ -69,6 +69,11 @@ public class GravityManager : MonoBehaviour
             
             previousTimeScale = TimeScale;
         }
+        
+        // The integration method I'm using to simulate gravity is the fourth-order Runge-Kutta
+        // Integration is required for these calculations, especially on larger timescales, because acceleration
+        // is not consistent over each time-step, so the approximation of total acceleration over a frame and how
+        // it affects positioning is necessary for an accurate simulation of this sort of complexity
 
         // For reversing time, I just need to invert DeltaTime every frame, so this will be multiplied by DeltaTime
         // This works because RK4 is symmetrical, so the orbits are properly followed even if time is reversed
