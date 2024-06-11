@@ -624,6 +624,7 @@ MonoBehaviour:
   xSpeed: 120
   ySpeed: 120
   scrollSpeed: 5
+  followPlanetRotation: 0
 --- !u!1 &225155377
 GameObject:
   m_ObjectHideFlags: 0
