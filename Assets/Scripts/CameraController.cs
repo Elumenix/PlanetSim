@@ -12,8 +12,8 @@ public class CameraController : MonoBehaviour
     private List<ValueTuple<GameObject, float>> circles; // Value 1: Planet, Value 2: Progress in Lerp function
     public GameObject orientationModel;
 
-    private Transform startBezierTransform;
-    private Transform endBezierTransform;
+    private GravitationalBody startCurvePlanet;
+    private GravitationalBody endCurvePlanet;
     private bool followingBezier;
     private float lerpAmount;
     
@@ -38,8 +38,8 @@ public class CameraController : MonoBehaviour
     {
         // Unity won't let me instantiate transforms on their own so this is my workaround for that
         // It doesn't use much more memory and I won't ever create new game objects for these variables, so it's alright
-        startBezierTransform = new GameObject().transform;
-        endBezierTransform = new GameObject().transform;
+        startCurvePlanet = new GameObject().AddComponent<GravitationalBody>();
+        endCurvePlanet = new GameObject().AddComponent<GravitationalBody>();
 
         _camera = Camera.main;
         
@@ -95,6 +95,25 @@ public class CameraController : MonoBehaviour
     // Happens after planets move
     private void LateUpdate()
     {
+        // Allows camera movement while physics is paused. Otherwise, this is handled in FixedUpdate
+        if (followingBezier && Time.timeScale == 0)
+        {
+            // Unscaled delta is used because timescale is 0, so regular deltaTime would also be 0
+            lerpAmount += (Time.unscaledDeltaTime / 5);
+            
+            endCurvePlanet.transform.position = endCurvePlanet.transform.rotation * new Vector3(0.0f, 0.0f, -distance) +
+                                          target.transform.position;
+            endCurvePlanet.Velocity = target.Velocity;
+            
+            FollowSpline(startCurvePlanet, endCurvePlanet, lerpAmount > 1 ? 1 : lerpAmount);
+            
+            // Transition has finished
+            if (lerpAmount >= 1)
+            {
+                followingBezier = false;
+            }
+        }
+        
         // Save variables that will be used for Scaling calculations
         Vector2 mousePosition = Input.mousePosition;
         int indexHovered = -1;
@@ -187,8 +206,9 @@ public class CameraController : MonoBehaviour
                         if (planetManager.planets[lastIndexHovered] != target)
                         {
                             // This will be constant so save this now. Need copies instead of references as the camera moves
-                            startBezierTransform.position = transform.position;
-                            startBezierTransform.rotation = transform.rotation;
+                            startCurvePlanet.transform.position = transform.position;
+                            startCurvePlanet.transform.rotation = transform.rotation;
+                            startCurvePlanet.Velocity = target.Velocity;
                             followingBezier = true; // Will start this process next frame
                             lerpAmount = 0;
                         }
@@ -198,8 +218,9 @@ public class CameraController : MonoBehaviour
                             // Rotation will be constant to prevent massive bezier changes as rotation updates
 
                             // Get rotation value from view of current camera position
-                            endBezierTransform.position = transform.position;
-                            endBezierTransform.LookAt(planetManager.planets[lastIndexHovered].transform, Vector3.up);
+                            endCurvePlanet.transform.position = target.transform.position; // temp to get rotation
+                            endCurvePlanet.Velocity = planetManager.planets[lastIndexHovered].Velocity;
+                            endCurvePlanet.transform.LookAt(planetManager.planets[lastIndexHovered].transform, Vector3.up);
                         }
 
                         // Switch tracked planet and scale movement values relative to it's size
@@ -422,15 +443,18 @@ public class CameraController : MonoBehaviour
         if (followingBezier)
         {
             // 5 seconds should pass for transition to finish
+            // Divide by 0 error can't happen because FixedUpdate doesn't run when Timescale is 0
             lerpAmount += (Time.fixedDeltaTime / 5) / Time.timeScale;
             
+
             // Position and rotation of end planet changes every update, so it keeps needing to be recalculated
             // Note that we aren't calculating the planets transform, but instead the camera's end goal
+
+            endCurvePlanet.transform.position = endCurvePlanet.transform.rotation * new Vector3(0.0f, 0.0f, -distance) +
+                                                target.transform.position;
+            endCurvePlanet.Velocity = target.Velocity;
             
-            endBezierTransform.position = endBezierTransform.rotation * new Vector3(0.0f, 0.0f, -distance) +
-                                          target.transform.position;
-            
-            FollowBezierCurve(startBezierTransform, endBezierTransform, lerpAmount > 1 ? 1 : lerpAmount);
+            FollowSpline(startCurvePlanet, endCurvePlanet, lerpAmount > 1 ? 1 : lerpAmount);
             
             // Transition has finished
             if (lerpAmount >= 1)
@@ -440,69 +464,35 @@ public class CameraController : MonoBehaviour
         }
     }
 
-    // This function isn't meant to move the camera along a Bézier curve to transition between planets
-    private void FollowBezierCurve(Transform start, Transform end, float t)
+    private void FollowSpline(GravitationalBody start, GravitationalBody end, float t)
     {
-        // Because I want to create a cubic Bézier curve, and this isn't an animation system, I need 4 control points
-        // Because I only start with two, I need to mathematically create two more control points to use
-        // this should be mathematically reasonable so that the camera doesn't move all over the place
-        
-        // Calculate direction away from planets that control points should be
-        // Because all planets hover around z = 0, I want the direction to meaningfully deviate on that axis
-        Vector3 direction = (end.position - start.position);
+        // Get the positions of the start and end transforms
+        Vector3 p1 = start.transform.position;
+        Vector3 p2 = end.transform.position;
 
-        if (direction.magnitude > 1000) // We'll use a cubic curve
+        float dist = Vector3.Distance(p1, p2);
+
+        //if (dist > 1000)
         {
-            direction = new Vector3(direction.x, direction.y, direction.magnitude / 3).normalized;
+            // Defines the control points for a Catmull-Rom spline
+            // Placing them close to the start and end points slow down the cameras velocity at the ends
+            Vector3 p0 = p1 - (p2 - p1).normalized * (dist * 0.01f);
+            Vector3 p3 = p2 + (p2 - p1).normalized * (dist * 0.01f);
 
-            // How far away I want the control point to be from others
-            float controlPointDistance = Vector3.Distance(start.position, end.position) / 10f;
+            // These are needed for math things
+            float t2 = t * t;
+            float t3 = t2 * t;
 
-            Vector3 controlPoint1 = start.position + direction * controlPointDistance;
-            Vector3 controlPoint2 = end.position - direction * controlPointDistance;
-
-            // We follow De Casteljau's Algorithm for following the Bézier curve
-            Vector3 A = Vector3.Lerp(start.position, controlPoint1, t);
-            Vector3 B = Vector3.Lerp(controlPoint1, controlPoint2, t);
-            Vector3 C = Vector3.Lerp(controlPoint2, endBezierTransform.position, t);
-            Vector3 D = Vector3.Lerp(A, B, t);
-            Vector3 E = Vector3.Lerp(B, C, t);
-
-            transform.position = Vector3.Lerp(D, E, t);
-
-
-            // Same process for position is used for rotation, though curve is purposely different to closely face end position
-            Quaternion rotationDirection = Quaternion.Inverse(start.rotation) * end.rotation;
-            Quaternion controlRotation1 =
-                start.rotation * Quaternion.Lerp(Quaternion.identity, rotationDirection, 5 / 6f);
-            Quaternion controlRotation2 =
-                start.rotation * Quaternion.Lerp(Quaternion.identity, rotationDirection, 1 / 6f);
-
-            // Rotation Bezier curve
-            Quaternion RA = Quaternion.Lerp(start.rotation, controlRotation1, t);
-            Quaternion RB = Quaternion.Lerp(controlRotation1, controlRotation2, t);
-            Quaternion RC = Quaternion.Lerp(controlRotation2, end.rotation, t);
-            Quaternion RD = Quaternion.Lerp(RA, RB, t);
-            Quaternion RE = Quaternion.Lerp(RB, RC, t);
-            transform.rotation = Quaternion.Lerp(RD, RE, t);
+            // Calculate the position along the spline using Catmull-Rom spline formula
+            transform.position = 0.5f * (2 * p1 + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 +
+                                         (-p0 + 3 * p1 - 3 * p2 + p3) * t3);
         }
-        else 
-        { 
-            // Regular interpolation is used so short distances don't look weird
-            Vector3 P = Vector3.Lerp(start.position, end.position, t);
-
-            transform.position = P;
-            
-            
-            // Quadratic Bézier curve used for rotation
-            Quaternion rotationDirection = Quaternion.Inverse(start.rotation) * end.rotation;
-            Quaternion controlRotation1 =
-                start.rotation * Quaternion.Lerp(Quaternion.identity, rotationDirection, 5 / 6f);
-            
-            Quaternion RA = Quaternion.Lerp(start.rotation, controlRotation1, t);
-            Quaternion RB = Quaternion.Lerp(controlRotation1, end.rotation, t);
-            
-            transform.rotation = Quaternion.Lerp(RA, RB, t);
-        }
+        /*else
+        {
+            // Just simply Interpolate instead
+            Vector3.Lerp(p1, p2, t);
+        }*/
+        
+        transform.rotation = Quaternion.Slerp(start.transform.rotation, end.transform.rotation, t);
     }
 }

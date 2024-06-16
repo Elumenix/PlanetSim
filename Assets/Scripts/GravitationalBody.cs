@@ -11,8 +11,7 @@ public class GravitationalBody : MonoBehaviour
     public Vector3d Velocity;
     public double RotationSpeed;
     public double Mass;
-
-    [FormerlySerializedAs("acceleration")] [HideInInspector] public Vector3d Acceleration;
+    public Vector3d Acceleration;
     
     
     void Start()
@@ -23,7 +22,11 @@ public class GravitationalBody : MonoBehaviour
     // Doesn't need to be fixed Update because transform doesn't need to be updated every calculation, only when drawn
     void Update()
     {
-        transform.position = new Vector3((float)Position.x, (float)Position.y, (float)Position.z);
+        // Mass check just confirms this isn't being used as a placeholder in CameraController
+        if (Mass != 0)
+        {
+            transform.position = new Vector3((float) Position.x, (float) Position.y, (float) Position.z);
+        }
     }
 
     private void OnDrawGizmos()
