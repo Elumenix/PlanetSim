@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -220,7 +221,10 @@ public class CameraController : MonoBehaviour
                             // Get rotation value from view of current camera position
                             endCurvePlanet.transform.position = target.transform.position; // temp to get rotation
                             endCurvePlanet.Velocity = planetManager.planets[lastIndexHovered].Velocity;
-                            endCurvePlanet.transform.LookAt(planetManager.planets[lastIndexHovered].transform, Vector3.up);
+                            
+                            // Matches rotation and obliquity to orbit
+                            endCurvePlanet.transform.LookAt(planetManager.planets[lastIndexHovered].transform,
+                                planetManager.planets[lastIndexHovered].transform.up);
                         }
 
                         // Switch tracked planet and scale movement values relative to it's size
@@ -409,9 +413,9 @@ public class CameraController : MonoBehaviour
                 // Maintain scale relative to camera
                 circles[i].Item1.transform.localScale *= tarDist / 20f;
                 
-                // Rotates circle to look at the camera
-                circles[i].Item1.transform
-                    .LookAt(planet.transform.position * 2 - transform.position, _camera.transform.up);
+                // Rotates circle to look at point on a line that bisects the camera and target planet/circle,
+                // As well as past the circle itself. This will line its rotation to be facing the camera correctly
+                circles[i].Item1.transform.LookAt(newPosition * 2 - transform.position, _camera.transform.up);
             }
             else
             {
@@ -475,9 +479,9 @@ public class CameraController : MonoBehaviour
         //if (dist > 1000)
         {
             // Defines the control points for a Catmull-Rom spline
-            // Placing them close to the start and end points slow down the cameras velocity at the ends
-            Vector3 p0 = p1 - (p2 - p1).normalized * (dist * 0.01f);
-            Vector3 p3 = p2 + (p2 - p1).normalized * (dist * 0.01f);
+            // This spline functions on velocity via position, so it makes sense to use actual velocity values
+            Vector3 p0 = p1 + new Vector3((float)start.Velocity.x, (float)start.Velocity.y, (float)start.Velocity.z);
+            Vector3 p3 = p2 - new Vector3((float)end.Velocity.x, (float)end.Velocity.y, (float)end.Velocity.z);
 
             // These are needed for math things
             float t2 = t * t;
