@@ -85,4 +85,3 @@ public class TimeManager : MonoBehaviour
         trackedScene.DecreaseTimescale();
     }
 }
-

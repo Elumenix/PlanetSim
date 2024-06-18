@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -13,20 +12,21 @@ public class CameraController : MonoBehaviour
     private List<ValueTuple<GameObject, float>> circles; // Value 1: Planet, Value 2: Progress in Lerp function
     public GameObject orientationModel;
 
+    // Variables to track camera following a spline
     private GravitationalBody startCurvePlanet;
     private GravitationalBody endCurvePlanet;
-    private bool followingBezier;
+    private bool followingCurve;
     private float lerpAmount;
     
     // Controls how responsive mouse rotation is
     public float distance = 10.0f; // distance from target
-    public float xSpeed = 120.0f; // rotation speed around target
-    public float ySpeed = 120.0f;
-    public float scrollSpeed;
+    public float xSpeed = 120.0f; // rotation speed around target horizontally
+    public float ySpeed = 120.0f; // rotation speed around target vertically
+    private float scrollSpeed; // How far scrolling moves you, this changes for each planet
     private bool mouseDown; // Tracked so that first clicking on screen doesn't teleport camera
     private bool dragging; // Tracked so that releasing mouse after drag doesn't suddenly teleport to a planet
-    private int clickTimer = 15;
-    public bool followPlanetRotation;
+    private int clickTimer = 15; // How many frames the mouse can be held down before a click will no longer register
+    public bool followPlanetRotation; // Will the camera rotate with a planet
 
     // Variables that track circle Ui changes
     private int lastIndexHovered;
@@ -34,7 +34,7 @@ public class CameraController : MonoBehaviour
     private Vector3 maxScale;
     private Camera _camera;
 
-    // Use this for initialization
+    // Initialization
     void Start()
     {
         // Unity won't let me instantiate transforms on their own so this is my workaround for that
@@ -50,6 +50,7 @@ public class CameraController : MonoBehaviour
         
         circles = new List<ValueTuple<GameObject, float>>();
         
+        // Camera control variables for the starting planet are set
         distance = target.transform.localScale.x * 10f;
         scrollSpeed = distance / 4;
         
@@ -96,45 +97,24 @@ public class CameraController : MonoBehaviour
     // Happens after planets move
     private void LateUpdate()
     {
-        // Allows camera movement while physics is paused. Otherwise, this is handled in FixedUpdate
-        if (followingBezier && Time.timeScale == 0)
-        {
-            // Unscaled delta is used because timescale is 0, so regular deltaTime would also be 0
-            lerpAmount += (Time.unscaledDeltaTime / 5);
-            
-            endCurvePlanet.transform.position = endCurvePlanet.transform.rotation * new Vector3(0.0f, 0.0f, -distance) +
-                                          target.transform.position;
-            endCurvePlanet.Velocity = target.Velocity;
-            
-            FollowSpline(startCurvePlanet, endCurvePlanet, lerpAmount > 1 ? 1 : lerpAmount);
-            
-            // Transition has finished
-            if (lerpAmount >= 1)
-            {
-                followingBezier = false;
-            }
-        }
-        
         // Save variables that will be used for Scaling calculations
         Vector2 mousePosition = Input.mousePosition;
         int indexHovered = -1;
         float currentLeastDistance = float.MaxValue;
-        bool overUI = EventSystem.current.IsPointerOverGameObject();
+        bool overUI = EventSystem.current.IsPointerOverGameObject(); // If over UI, input will be ignored
         
         for (int i = 0; i < circles.Count; i++)
         {
-            // Following code linearly interpolates scale of all planets based on which was hovered the last update
+            // Following code linearly interpolates ui circle scale of all planets based on which was hovered the last update
             #region PreviousScalingChange
-
-            // If timescale is 0, try to emulate a speed of deltaTime
-            float necessaryDelta = Time.timeScale == 0 ? .01666f : Time.deltaTime;
             
             // Mouse hover for last frame is applied. The hovered circle increases in size while all others decrease
             float timeValue =
                 lastIndexHovered == i && !overUI
-                    ? Mathf.Clamp(circles[i].Item2 + necessaryDelta * 5, 0, 1)   // Increase
-                    : Mathf.Clamp(circles[i].Item2 - necessaryDelta * 5, 0, 1);  // Decrease
+                    ? Mathf.Clamp(circles[i].Item2 + Time.unscaledDeltaTime * 5, 0, 1)   // Increase
+                    : Mathf.Clamp(circles[i].Item2 - Time.unscaledDeltaTime * 5, 0, 1);  // Decrease
 
+            // If the hover length of a circle has changed, replace its struct
             if (!Mathf.Approximately(timeValue, circles[i].Item2))
             {
                 circles[i] = new ValueTuple<GameObject, float>(circles[i].Item1, timeValue);
@@ -145,14 +125,14 @@ public class CameraController : MonoBehaviour
 
             #endregion
 
-            // Figures out what planet the mouse is hovering this frame
+            // Figures out what planet the mouse is hovering this frame, before the camera/circles move
             #region NextScalingHover
             
-            // convert ui to screen space to compare to mouse position
+            // Convert ui to screen space to compare to mouse position
             float mouseDistance =
                 Vector2.Distance(mousePosition, _camera!.WorldToScreenPoint(planetManager.planets[i].transform.position));
 
-            if (mouseDistance <= 35f) // Within Range
+            if (mouseDistance <= 35f) // Within Range : This is essentially the circles radius on screen
             {
                 // Don't let the moon be an option unless on Earth
                 if (i == 4 && planetManager.planets[3].transform != target.transform)
@@ -160,6 +140,8 @@ public class CameraController : MonoBehaviour
                     continue;    
                 }
                 
+                // Series of checks to find which circle the mouse is closest to
+                // It is of note that the Sun is always an option, even though it doesn't have a circle
                 if (indexHovered == -1) // If nothing is hovered yet
                 {
                     indexHovered = i;
@@ -167,7 +149,8 @@ public class CameraController : MonoBehaviour
                 }
                 else if (mouseDistance < currentLeastDistance &&
                          (circles[i].Item1.name == "Sun" || circles[i].Item1.activeSelf)) 
-                { // This is the new closest viable planet to mouse
+                { 
+                    // This is the new closest viable planet to mouse
                     currentLeastDistance = mouseDistance;
                     indexHovered = i;
                 }
@@ -175,14 +158,40 @@ public class CameraController : MonoBehaviour
             
             #endregion
         }
+        
+        // Planet hover for next frame is saved
+        lastIndexHovered = indexHovered;
+        
+        #region FollowingSpline
 
-        // User controls are taken away during camera transition, and are instead handled by FollowBezierCurve
-        // This is done in fixedUpdate instead of update because it isn't visually related and the math
-        // To follow the Bézier curve needs to much more precise and related to the current physics for large time steps
-        // Input will not be accepted during this step so that things don't get messed up
-        if (!followingBezier)
+        if (followingCurve)
         {
-            // Camera direction and zoom will be modified based on user controls, as long as not in transition
+            // 5 seconds should pass for transition to finish
+            lerpAmount += Time.unscaledDeltaTime / 5; // Unscaled means Time.timescale won't affect speed
+            
+            // Position and rotation of end planet changes every update, so it keeps needing to be recalculated
+            // Note that we aren't calculating the planets transform, but instead the camera's end goal
+            endCurvePlanet.transform.position = endCurvePlanet.transform.rotation * new Vector3(0.0f, 0.0f, -distance) +
+                                                target.transform.position;
+            endCurvePlanet.Velocity = target.Velocity;
+            
+            FollowSpline(startCurvePlanet, endCurvePlanet, lerpAmount > 1 ? 1 : lerpAmount);
+            
+            // Transition has finished
+            if (lerpAmount >= 1)
+            {
+                followingCurve = false;
+            }
+        }
+
+        #endregion
+        
+        // User controls are taken away during camera transitions, and positioning is handled by the FollowingSpline region 
+        // Input will not be accepted during this step so that things don't get messed up
+        // This and FollowingSpline can both run in a frame on the very last frame of followingCurve
+        if (!followingCurve)
+        {
+            // Camera direction and zoom will be modified based on user controls, as long as not in a transition
             #region CameraOrientationUpdate
 
             // Variables are established here to be incremented throughout this section 
@@ -196,30 +205,26 @@ public class CameraController : MonoBehaviour
                 // Go to different Planet : only if not dragging or click completes within 15 frames of press
                 if (Input.GetMouseButtonUp(0) && lastIndexHovered != -1 && (!dragging || clickTimer > 0))
                 {
-                    Vector3 displacement = transform.position - planetManager.planets[lastIndexHovered].transform.position; // B and A are your game objects
+                    Vector3 displacement = transform.position - planetManager.planets[lastIndexHovered].transform.position; 
                     float dot = Vector3.Dot(displacement, transform.forward);
 
                     // Confirms the clicked on planet is in front of the camera
                     // There's a small unlikely chance the user manages to click on a UI circle behind the camera
                     if (dot < 0)
                     {
-                        // TODO: add additional check to disable bezier altogether when option is added
+                        // TODO: add additional check to change or disable spline altogether when option is added
                         if (planetManager.planets[lastIndexHovered] != target)
                         {
-                            // This will be constant so save this now. Need copies instead of references as the camera moves
+                            // This will be constant, so save this now. Need copies instead of references as the camera moves
                             startCurvePlanet.transform.position = transform.position;
                             startCurvePlanet.transform.rotation = transform.rotation;
                             startCurvePlanet.Velocity = target.Velocity;
-                            followingBezier = true; // Will start this process next frame
+                            followingCurve = true; // Will start this process next frame
                             lerpAmount = 0;
-                        }
-
-                        if (followingBezier)
-                        {
-                            // Rotation will be constant to prevent massive bezier changes as rotation updates
-
+                        
+                            // Rotation will be constant to prevent massive changes as rotation updates
                             // Get rotation value from view of current camera position
-                            endCurvePlanet.transform.position = target.transform.position; // temp to get rotation
+                            endCurvePlanet.transform.position = _camera.transform.position; // temp to get rotation
                             endCurvePlanet.Velocity = planetManager.planets[lastIndexHovered].Velocity;
                             
                             // Matches rotation and obliquity to orbit
@@ -233,7 +238,8 @@ public class CameraController : MonoBehaviour
                         scrollSpeed = distance / 4;
 
 
-                        if (!followingBezier)
+                        // If the camera isn't set up to follow the spline it will go to the next planet immediately
+                        if (!followingCurve)
                         {
                             // Position camera relative to the new target planet
                             Vector3 pos = target.transform.rotation * new Vector3(0.0f, 0.0f, -distance) +
@@ -256,7 +262,7 @@ public class CameraController : MonoBehaviour
                 }
             }
 
-            if (Input.GetMouseButton(0))
+            if (Input.GetMouseButton(0)) // left mouse button down
             {
                 clickTimer--; // Decrement
 
@@ -284,7 +290,7 @@ public class CameraController : MonoBehaviour
             }
 
             // Using right click will allow movement along the third axis
-            if (Input.GetMouseButton(1))
+            if (Input.GetMouseButton(1)) // right mouse button down
             {
                 if (mouseDown)
                 {
@@ -316,8 +322,9 @@ public class CameraController : MonoBehaviour
                 }
             }
 
-            // Actual position update can be skipped on bezier start frame so there isn't a single from of the other planet
-            if (!followingBezier)
+            // FINAL CAMERA POSITION UPDATE
+            // Actual position update can be skipped on spline start frame so there isn't a single frame of the other planet
+            if (!followingCurve)
             {
                 // Update position of camera, required every frame since planets are moving
                 // Z Quaternion is added separately so that it doesn't affect the x/y mouse direction
@@ -340,7 +347,7 @@ public class CameraController : MonoBehaviour
         }
         else
         {
-            // This still needs to update
+            // This still needs to update no matter what
             orientationModel.transform.rotation = transform.rotation;
         }
 
@@ -352,7 +359,7 @@ public class CameraController : MonoBehaviour
         {
             GravitationalBody planet = planetManager.planets[i];
 
-            // This will hide circles if hidden behind other planets, mainly sun but also handles earth and moon
+            // This will hide circles if hidden behind other planets, mainly the Sun but also handles the Earth and Moon
             if (planetManager.planets[0].transform != target.transform) // Ignore if tracking the sun
             {
                 // Don't do this part for the planet you are currently looking at
@@ -378,17 +385,18 @@ public class CameraController : MonoBehaviour
 
             switch (planet.name)
             {
-                // Don't want to see the moon ui at all
+                // Don't want to see the Moon or Sun ui at all
                 case "Moon" or "Sun":
                     circles[i].Item1.SetActive(false);
                     continue;
 
-                // Don't show Earth circle if focused on the moon
+                // Don't show Earth circle if focused on the Moon
                 case "Earth" when planetManager.planets[4].transform == target.transform:
                     circles[i].Item1.SetActive(false);
                     continue;
             }
 
+            // Getting information on positioning of planet relative to the camera
             Vector3 dir = planet.transform.position - transform.position;
             float dist = dir.magnitude;
             float tarDist = (target.transform.position - _camera!.transform.position).magnitude;
@@ -419,20 +427,20 @@ public class CameraController : MonoBehaviour
             }
             else
             {
-                // Hide the circle if camera is too close to the planet
+                // Hide the circle if camera is too close to the planet, or this planet is the target
                 circles[i].Item1.SetActive(false);
             }
         }
         
         #endregion
-
-        // planet hover for next frame is saved
-        lastIndexHovered = indexHovered;
     }
 
     public void FixedUpdate()
     {
-        if (followPlanetRotation && Time.timeScale != 0 && !followingBezier)
+        // This set of instructions make it so that the camera rotates around the planet at the same rate the planet rotates
+        // This is done by doing calculations based on rotationSpeed, which only applies to planets during physics updates
+        // Because this needs to follow physics Updates, it is done in FixedUpdate instead of LateUpdate
+        if (followPlanetRotation && Time.timeScale != 0 && !followingCurve)
         {
             // Reverse Direction if time is reversed
             int timeDir = !planetManager.reversed ? 1 : -1;
@@ -443,29 +451,6 @@ public class CameraController : MonoBehaviour
             Vector3 rotationAxis = transform.InverseTransformDirection(target.transform.up); // Aligns camera to planet
             transform.Rotate(rotationAxis, deltaRotation, Space.Self); // transformation relative to camera
         }
-
-        if (followingBezier)
-        {
-            // 5 seconds should pass for transition to finish
-            // Divide by 0 error can't happen because FixedUpdate doesn't run when Timescale is 0
-            lerpAmount += (Time.fixedDeltaTime / 5) / Time.timeScale;
-            
-
-            // Position and rotation of end planet changes every update, so it keeps needing to be recalculated
-            // Note that we aren't calculating the planets transform, but instead the camera's end goal
-
-            endCurvePlanet.transform.position = endCurvePlanet.transform.rotation * new Vector3(0.0f, 0.0f, -distance) +
-                                                target.transform.position;
-            endCurvePlanet.Velocity = target.Velocity;
-            
-            FollowSpline(startCurvePlanet, endCurvePlanet, lerpAmount > 1 ? 1 : lerpAmount);
-            
-            // Transition has finished
-            if (lerpAmount >= 1)
-            {
-                followingBezier = false;
-            }
-        }
     }
 
     private void FollowSpline(GravitationalBody start, GravitationalBody end, float t)
@@ -475,28 +460,49 @@ public class CameraController : MonoBehaviour
         Vector3 p2 = end.transform.position;
 
         float dist = Vector3.Distance(p1, p2);
-
-        //if (dist > 1000)
-        {
-            // Defines the control points for a Catmull-Rom spline
-            // This spline functions on velocity via position, so it makes sense to use actual velocity values
-            Vector3 p0 = p1 + new Vector3((float)start.Velocity.x, (float)start.Velocity.y, (float)start.Velocity.z);
-            Vector3 p3 = p2 - new Vector3((float)end.Velocity.x, (float)end.Velocity.y, (float)end.Velocity.z);
-
-            // These are needed for math things
-            float t2 = t * t;
-            float t3 = t2 * t;
-
-            // Calculate the position along the spline using Catmull-Rom spline formula
-            transform.position = 0.5f * (2 * p1 + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 +
-                                         (-p0 + 3 * p1 - 3 * p2 + p3) * t3);
-        }
-        /*else
-        {
-            // Just simply Interpolate instead
-            Vector3.Lerp(p1, p2, t);
-        }*/
         
-        transform.rotation = Quaternion.Slerp(start.transform.rotation, end.transform.rotation, t);
+        // Defines the control points for a Catmull-Rom spline
+        // This spline functions on velocity via position, so it makes sense to use actual velocity values
+        Vector3 p0 = p1 + new Vector3((float)start.Velocity.x, (float)start.Velocity.y, (float)start.Velocity.z);
+        Vector3 p3 = p2 - new Vector3((float)end.Velocity.x, (float)end.Velocity.y, (float)end.Velocity.z);
+
+        // These are needed for math things
+        float t2 = t * t;
+        float t3 = t2 * t;
+
+        // Calculate the position along the spline using Catmull-Rom spline formula
+        transform.position = 0.5f * (2 * p1 + (-p0 + p2) * t + (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 +
+                                     (-p0 + 3 * p1 - 3 * p2 + p3) * t3);
+
+        switch (dist)
+        {
+            // Decision on how to handle rotation
+            case > 300: // Will happen most of the time
+                
+                // Rotate camera over time to match final rotation
+                transform.rotation = Quaternion.Slerp(start.transform.rotation, end.transform.rotation, t);
+                
+                // This is just quadratic equation to change to fov of the camera throughout the transition
+                // The camera will go from 27 (default fov) to p, then back to 27
+                // The point of this is to give a feeling of speed during a transition
+                // This should relatively well for Catmull-Rom as it is based on velocity
+                float p = 27 + Mathf.Pow(dist, 1f / 3f) * 1.5f; // Peak of quadratic
+                _camera.fieldOfView = (4 * (27 - p) * t2) - (4 * (27 - p) * t) + 27;
+                break;
+            
+            default:
+                
+                // Unless the user does weird things with the camera, this is only really for an earth/moon transition
+                // This will give a much better view for nearer object. Essentially rotates much faster at the beginning
+                transform.rotation = Quaternion.Slerp(start.transform.rotation, end.transform.rotation, Mathf.Pow(t, 0.25f));
+            
+                // The major problem with this whole system is that the planets still move while the camera is
+                // so the end of the spline will shift a lot more from the beginning and the camera will always be
+                // playing catch-up. Catmull-Rom is relatively straight so users won't notice with larger distances
+                // for near planets it's not so clear-cut and the fact that the planets still move may be obvious depending
+                // on the angle the user views the other planet at. Aside from pausing the simulation during the camera 
+                // transition, which I don't want to do, having the camera more closely track what's going on is the best solution
+                break;
+        }
     }
 }

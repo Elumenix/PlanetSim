@@ -102,7 +102,7 @@ public class GravityManager : MonoBehaviour
             k1_accelerations.Add(body.Acceleration);
         }
 
-        // Calculate mid-point accelerations (k2)
+        // Update variables and calculate mid-point accelerations (k2)
         for (int i = 0; i < planets.Count; i++)
         {
             GravitationalBody body = planets[i];
@@ -119,7 +119,7 @@ public class GravityManager : MonoBehaviour
             k2_accelerations.Add(body.Acceleration);
         }
 
-        // Calculate second mid-point accelerations (k3)
+        // Update variables and calculate second mid-point accelerations (k3)
         for (int i = 0; i < planets.Count; i++)
         {
             GravitationalBody body = planets[i];
@@ -136,7 +136,7 @@ public class GravityManager : MonoBehaviour
             k3_accelerations.Add(body.Acceleration);
         }
 
-        // Calculate end-point accelerations (k4)
+        // Update variables and calculate end-point accelerations (k4)
         for (int i = 0; i < planets.Count; i++)
         {
             GravitationalBody body = planets[i];
@@ -186,12 +186,13 @@ public class GravityManager : MonoBehaviour
                 Vector3d direction = body2.Position - body1.Position;
                 double distance = direction.magnitude / 1500.0;
 
-                if (distance != 0)
+                if (distance != 0) // Distance realistically shouldn't ever be 0 in this specific simulation
                 {
+                    // This is just the gravitational formula
                     double forceMagnitude = G * (body1.Mass * body2.Mass) / Math.Pow(distance, 2);
                     Vector3d force = direction.normalized * forceMagnitude;
                     
-                    // Apply forces
+                    // Apply forces: F = MA
                     body1.Acceleration += (force / body1.Mass);
                     body2.Acceleration += (-force / body2.Mass); // Apply force in opposite direction
                 }
@@ -204,7 +205,7 @@ public class GravityManager : MonoBehaviour
         // Calculations for G need to be really precise since every time-step and
         // calculation uses it multiple times every frame for acceleration 
 
-        double baseG = 6.674484e-11;
+        double baseG = 6.674484e-11; // in (m^3)/((kg)(s^2))
         double au = 149597870.7e03; // in m
         double earthMass = 5.9722e24; // in kg
 
