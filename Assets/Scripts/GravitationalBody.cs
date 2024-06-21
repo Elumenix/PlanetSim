@@ -10,14 +10,6 @@ public class GravitationalBody : MonoBehaviour
     public Vector3d Velocity;
     public double RotationSpeed;
     public double Mass;
-    public double OrbitEccentricity;
-    public double SemiMajorAxis;
-    public double Inclination; // This is on the XY axis
-    public double Perihelion;
-    public double AscendingLongitude;
-    public float TrueAnomaly;
-    public float MeanMotion; // In degrees per day
-    public float SiderealOrbitPeriod;
     public Vector3d Acceleration;
     
     

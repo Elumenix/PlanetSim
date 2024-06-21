@@ -1280,14 +1280,6 @@ MonoBehaviour:
     z: -0.00000119401060689
   RotationSpeed: 0.00620731016089
   Mass: 17.1
-  OrbitEccentricity: 0
-  SemiMajorAxis: 0
-  Inclination: 0
-  Perihelion: 0
-  AscendingLongitude: 0
-  TrueAnomaly: 0
-  MeanMotion: 0
-  SiderealOrbitPeriod: 0
   Acceleration:
     x: 0
     y: 0
@@ -2164,14 +2156,6 @@ MonoBehaviour:
     z: -0.00000663840763222
   RotationSpeed: 0.0040612509026
   Mass: 0.107
-  OrbitEccentricity: 0.09329516808990976
-  SemiMajorAxis: 2285.51571778
-  Inclination: 1.847870851623892
-  Perihelion: 286.6550823329894
-  AscendingLongitude: 49.49003782355346
-  TrueAnomaly: 0
-  MeanMotion: 0
-  SiderealOrbitPeriod: 0
   Acceleration:
     x: 0
     y: 0
@@ -2441,14 +2425,6 @@ MonoBehaviour:
     z: 0.00000495693300433
   RotationSpeed: 0.000071047339554
   Mass: 0.0553
-  OrbitEccentricity: 0.2056312346466444
-  SemiMajorAxis: 580.647892847
-  Inclination: 7.003582477493234
-  Perihelion: 29.19157938346891
-  AscendingLongitude: 48.30073499708623
-  TrueAnomaly: 66.35288
-  MeanMotion: 4.09234
-  SiderealOrbitPeriod: 87.96923
   Acceleration:
     x: 0
     y: 0
@@ -2583,14 +2559,6 @@ MonoBehaviour:
     z: -0.00000000079400238075
   RotationSpeed: 0.00000297
   Mass: 332946.0487
-  OrbitEccentricity: 0
-  SemiMajorAxis: 0
-  Inclination: 0
-  Perihelion: 0
-  AscendingLongitude: 0
-  TrueAnomaly: 0
-  MeanMotion: 0
-  SiderealOrbitPeriod: 0
   Acceleration:
     x: 0
     y: 0
@@ -2849,7 +2817,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &753057667
 Transform:
   m_ObjectHideFlags: 0
@@ -3596,14 +3564,6 @@ MonoBehaviour:
     z: -0.00000280770122376
   RotationSpeed: 0.00938418924755
   Mass: 95.2
-  OrbitEccentricity: 0
-  SemiMajorAxis: 0
-  Inclination: 0
-  Perihelion: 0
-  AscendingLongitude: 0
-  TrueAnomaly: 0
-  MeanMotion: 0
-  SiderealOrbitPeriod: 0
   Acceleration:
     x: 0
     y: 0
@@ -4248,14 +4208,6 @@ MonoBehaviour:
     z: 0.00000084382521219
   RotationSpeed: -0.00580045283057
   Mass: 14.5
-  OrbitEccentricity: 0
-  SemiMajorAxis: 0
-  Inclination: 0
-  Perihelion: 0
-  AscendingLongitude: 0
-  TrueAnomaly: 0
-  MeanMotion: 0
-  SiderealOrbitPeriod: 0
   Acceleration:
     x: 0
     y: 0
@@ -5206,14 +5158,6 @@ MonoBehaviour:
     z: 0.00000001108007879
   RotationSpeed: 0.00417807413224
   Mass: 1
-  OrbitEccentricity: 0.01620828506603996
-  SemiMajorAxis: 1499.25850078
-  Inclination: 0.003905250316936172
-  Perihelion: 307.7307329122686
-  AscendingLongitude: 154.7305606243305
-  TrueAnomaly: 0
-  MeanMotion: 0
-  SiderealOrbitPeriod: 0
   Acceleration:
     x: 0
     y: 0
@@ -5481,14 +5425,6 @@ MonoBehaviour:
     z: -0.00000685006917336
   RotationSpeed: -0.0000171451890615
   Mass: 0.815
-  OrbitEccentricity: 0.00672703661329679
-  SemiMajorAxis: 1084.98986972
-  Inclination: 3.394388143181739
-  Perihelion: 55.2468443440785
-  AscendingLongitude: 76.61206948300276
-  TrueAnomaly: 54.2205
-  MeanMotion: 1.602149
-  SiderealOrbitPeriod: 224.6982
   Acceleration:
     x: 0
     y: 0
@@ -5842,14 +5778,6 @@ MonoBehaviour:
     z: 0.00000171808864619
   RotationSpeed: 0.0100754628274
   Mass: 317.8
-  OrbitEccentricity: 0
-  SemiMajorAxis: 0
-  Inclination: 0
-  Perihelion: 0
-  AscendingLongitude: 0
-  TrueAnomaly: 0
-  MeanMotion: 0
-  SiderealOrbitPeriod: 0
   Acceleration:
     x: 0
     y: 0
@@ -6093,7 +6021,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &1939083505
 Transform:
   m_ObjectHideFlags: 0
@@ -6525,14 +6453,6 @@ MonoBehaviour:
     z: -0.00000058316471504
   RotationSpeed: 0.00015250417633
   Mass: 0.0123000371
-  OrbitEccentricity: 0.05980231621287874
-  SemiMajorAxis: 3.830955837684
-  Inclination: 5.026476107794565
-  Perihelion: 333.7298598753092
-  AscendingLongitude: 12.26600604451654
-  TrueAnomaly: 0
-  MeanMotion: 0
-  SiderealOrbitPeriod: 0
   Acceleration:
     x: 0
     y: 0
@@ -6624,6 +6544,50 @@ Transform:
   - {fileID: 225155378}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 83.33, y: 0, z: 0}
+--- !u!1 &2011500918
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2011500920}
+  - component: {fileID: 2011500919}
+  m_Layer: 0
+  m_Name: PathVisualizer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2011500919
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2011500918}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e7b834db1e4c78d489a8e81dc52cd240, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &2011500920
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2011500918}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2135671981
 GameObject:
   m_ObjectHideFlags: 0
@@ -6781,3 +6745,4 @@ SceneRoots:
   - {fileID: 1690493705}
   - {fileID: 947035838}
   - {fileID: 1003027463}
+  - {fileID: 2011500920}

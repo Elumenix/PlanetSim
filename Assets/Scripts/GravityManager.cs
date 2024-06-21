@@ -13,7 +13,6 @@ public enum TimeScale
 public class GravityManager : MonoBehaviour
 {
     public List<GravitationalBody> planets;
-    private List<LineRenderer> orbits;
     private double G;
 
     [SerializeField]
@@ -27,14 +26,15 @@ public class GravityManager : MonoBehaviour
     private TimeScale previousTimeScale;
     public float StartingSpeed = 1;
     public bool reversed;
-    private List<Vector3> positions;
+    private OrbitPositions orbitPositions;
+    private int Timer = 0;
     
     // Start is called before the first frame update
     void Start()
     {
-        positions = new List<Vector3>();
-        
-        orbits = new List<LineRenderer>();
+        orbitPositions = new OrbitPositions();
+        orbitPositions.positions = new List<Vector3>();
+
         previousTimeScale = TimeScale;
         G = GetGravitationalConstant(TimeScale);
         Time.timeScale = StartingSpeed;
@@ -50,24 +50,6 @@ public class GravityManager : MonoBehaviour
                 planet.RotationSpeed = temp.z;
             }
         }
-
-        // Create the first
-        foreach (GravitationalBody unused in planets)
-        {
-            // Code to create an orbital path around the sun to the lineRenderer
-            LineRenderer lineRenderer = (new GameObject("line")).AddComponent<LineRenderer>();
-            orbits.Add(lineRenderer);
-            lineRenderer.positionCount = 361;
-            lineRenderer.widthMultiplier = 20;
-            lineRenderer.sortingOrder = 500; // Behind Circle UI
-        }
-
-        CalculateOrbitShapes();
-    }
-
-    private void Update()
-    {
-        CalculateOrbitShapes();
     }
 
     void FixedUpdate()
@@ -186,8 +168,19 @@ public class GravityManager : MonoBehaviour
             body.Velocity = initialVelocities[i] + (1.0 / 6.0) * timeDir * Time.fixedDeltaTime *
                 (k1_accelerations[i] + 2 * k2_accelerations[i] + 2 * k3_accelerations[i] + k4_accelerations[i]);
         }
-        
-        positions.Add(planets[1].transform.position);
+
+        // Record every xth fixed Update depending on what timescale I need to use for distance
+        if (Timer == 0)
+        {
+            orbitPositions.positions.Add(planets[9].transform.position);
+        }
+
+        Timer++;
+
+        if (Timer == 20)
+        {
+            Timer = 0;
+        }
     }
 
     void CalculateAccelerations()
@@ -223,54 +216,6 @@ public class GravityManager : MonoBehaviour
                     body2.Acceleration += (-force / body2.Mass); // Apply force in opposite direction
                 }
             }
-        }
-    }
-
-    private void CalculateOrbitShapes()
-    {
-        // This code will draw the initial lineRenderers that show the orbits of the planets
-        for (int p = 0; p < planets.Count; p++)
-        {
-            GravitationalBody planet = planets[p];
-            LineRenderer lineRenderer = orbits[p];
-            
-            // Waste of resources
-            if (planet.name is "Sun" or "Moon")
-            {
-                continue;
-            }
-            
-            
-            var points = new Vector3[361];
-
-            float inclinationRadians = (float) planet.Inclination * Mathf.Deg2Rad;
-            float ascendingNodeRadians = (float) planet.AscendingLongitude * Mathf.Deg2Rad;
-            float periapsisArg = (float) planet.Perihelion * Mathf.Deg2Rad;
-            float ta = planet.TrueAnomaly * Mathf.Deg2Rad;
-            float N = planet.MeanMotion * Mathf.Deg2Rad;
-
-            for (var i = 0; i <= 360; i++)
-            {
-                double nu = ta + N * (i / 360.0 * planet.SiderealOrbitPeriod);
-
-                // Compute position in the orbital plane
-                double r = planet.SemiMajorAxis * (1 - planet.OrbitEccentricity * planet.OrbitEccentricity) / (1 + planet.OrbitEccentricity * Math.Cos(nu));
-                Vector3d pos = new Vector3d(r * Math.Cos(nu), r * Math.Sin(nu), 0);
-                Vector3 position = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
-
-                position = Quaternion.Euler(0, 0, periapsisArg) * position;
-                
-                // Rotate to take into account the inclination and the longitude of ascending node
-                position = Quaternion.Euler(0, ascendingNodeRadians, 0) * position;
-                position = Quaternion.Euler(inclinationRadians, 0, 0) * position;
-
-                position += planets[0].transform.position;
-
-                points[i] = position;
-            }
-
-            lineRenderer.SetPositions(points);
-            lineRenderer.SetPosition(360, lineRenderer.GetPosition(0)); // loop
         }
     }
     
@@ -447,5 +392,11 @@ public class GravityManager : MonoBehaviour
                 _timeScale = TimeScale.month;
                 break;
         }
+    }
+
+    private void OnApplicationQuit()
+    {
+        //string json = JsonUtility.ToJson(orbitPositions);
+        //System.IO.File.WriteAllText("Assets/Line2DPaths/NeptuneOrbit.json", json);
     }
 }
