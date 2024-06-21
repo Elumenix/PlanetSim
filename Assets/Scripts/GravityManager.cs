@@ -27,7 +27,7 @@ public class GravityManager : MonoBehaviour
     public float StartingSpeed = 1;
     public bool reversed;
     private OrbitPositions orbitPositions;
-    private int Timer = 0;
+    //private int Timer = 0;
     
     // Start is called before the first frame update
     void Start()
@@ -170,17 +170,17 @@ public class GravityManager : MonoBehaviour
         }
 
         // Record every xth fixed Update depending on what timescale I need to use for distance
-        if (Timer == 0)
+        /*if (Timer == 0)
         {
-            orbitPositions.positions.Add(planets[4].transform.position - planets[3].transform.position);
+            orbitPositions.positions.Add(planets[9].transform.position - planets[0].transform.position);
         }
 
         Timer++;
 
-        if (Timer == 5)
+        if (Timer == 20)
         {
             Timer = 0;
-        }
+        }*/
     }
 
     void CalculateAccelerations()
@@ -397,6 +397,6 @@ public class GravityManager : MonoBehaviour
     private void OnApplicationQuit()
     {
         //string json = JsonUtility.ToJson(orbitPositions);
-        //System.IO.File.WriteAllText("Assets/Line2DPaths/MoonOrbit.json", json);
+        //System.IO.File.WriteAllText("Assets/Line2DPaths/NeptuneOrbit.json", json);
     }
 }
