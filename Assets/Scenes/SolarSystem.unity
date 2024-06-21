@@ -1285,6 +1285,9 @@ MonoBehaviour:
   Inclination: 0
   Perihelion: 0
   AscendingLongitude: 0
+  TrueAnomaly: 0
+  MeanMotion: 0
+  SiderealOrbitPeriod: 0
   Acceleration:
     x: 0
     y: 0
@@ -2166,6 +2169,9 @@ MonoBehaviour:
   Inclination: 1.847870851623892
   Perihelion: 286.6550823329894
   AscendingLongitude: 49.49003782355346
+  TrueAnomaly: 0
+  MeanMotion: 0
+  SiderealOrbitPeriod: 0
   Acceleration:
     x: 0
     y: 0
@@ -2438,8 +2444,11 @@ MonoBehaviour:
   OrbitEccentricity: 0.2056312346466444
   SemiMajorAxis: 580.647892847
   Inclination: 7.003582477493234
-  Perihelion: 0
+  Perihelion: 29.19157938346891
   AscendingLongitude: 48.30073499708623
+  TrueAnomaly: 66.35288
+  MeanMotion: 4.09234
+  SiderealOrbitPeriod: 87.96923
   Acceleration:
     x: 0
     y: 0
@@ -2579,6 +2588,9 @@ MonoBehaviour:
   Inclination: 0
   Perihelion: 0
   AscendingLongitude: 0
+  TrueAnomaly: 0
+  MeanMotion: 0
+  SiderealOrbitPeriod: 0
   Acceleration:
     x: 0
     y: 0
@@ -2837,7 +2849,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &753057667
 Transform:
   m_ObjectHideFlags: 0
@@ -3589,6 +3601,9 @@ MonoBehaviour:
   Inclination: 0
   Perihelion: 0
   AscendingLongitude: 0
+  TrueAnomaly: 0
+  MeanMotion: 0
+  SiderealOrbitPeriod: 0
   Acceleration:
     x: 0
     y: 0
@@ -4238,6 +4253,9 @@ MonoBehaviour:
   Inclination: 0
   Perihelion: 0
   AscendingLongitude: 0
+  TrueAnomaly: 0
+  MeanMotion: 0
+  SiderealOrbitPeriod: 0
   Acceleration:
     x: 0
     y: 0
@@ -5193,6 +5211,9 @@ MonoBehaviour:
   Inclination: 0.003905250316936172
   Perihelion: 307.7307329122686
   AscendingLongitude: 154.7305606243305
+  TrueAnomaly: 0
+  MeanMotion: 0
+  SiderealOrbitPeriod: 0
   Acceleration:
     x: 0
     y: 0
@@ -5463,8 +5484,11 @@ MonoBehaviour:
   OrbitEccentricity: 0.00672703661329679
   SemiMajorAxis: 1084.98986972
   Inclination: 3.394388143181739
-  Perihelion: 0
+  Perihelion: 55.2468443440785
   AscendingLongitude: 76.61206948300276
+  TrueAnomaly: 54.2205
+  MeanMotion: 1.602149
+  SiderealOrbitPeriod: 224.6982
   Acceleration:
     x: 0
     y: 0
@@ -5823,6 +5847,9 @@ MonoBehaviour:
   Inclination: 0
   Perihelion: 0
   AscendingLongitude: 0
+  TrueAnomaly: 0
+  MeanMotion: 0
+  SiderealOrbitPeriod: 0
   Acceleration:
     x: 0
     y: 0
@@ -6066,7 +6093,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1939083505
 Transform:
   m_ObjectHideFlags: 0
@@ -6503,6 +6530,9 @@ MonoBehaviour:
   Inclination: 5.026476107794565
   Perihelion: 333.7298598753092
   AscendingLongitude: 12.26600604451654
+  TrueAnomaly: 0
+  MeanMotion: 0
+  SiderealOrbitPeriod: 0
   Acceleration:
     x: 0
     y: 0

@@ -27,10 +27,13 @@ public class GravityManager : MonoBehaviour
     private TimeScale previousTimeScale;
     public float StartingSpeed = 1;
     public bool reversed;
+    private List<Vector3> positions;
     
     // Start is called before the first frame update
     void Start()
     {
+        positions = new List<Vector3>();
+        
         orbits = new List<LineRenderer>();
         previousTimeScale = TimeScale;
         G = GetGravitationalConstant(TimeScale);
@@ -183,6 +186,8 @@ public class GravityManager : MonoBehaviour
             body.Velocity = initialVelocities[i] + (1.0 / 6.0) * timeDir * Time.fixedDeltaTime *
                 (k1_accelerations[i] + 2 * k2_accelerations[i] + 2 * k3_accelerations[i] + k4_accelerations[i]);
         }
+        
+        positions.Add(planets[1].transform.position);
     }
 
     void CalculateAccelerations()
@@ -238,28 +243,30 @@ public class GravityManager : MonoBehaviour
             
             var points = new Vector3[361];
 
-            
-            double a = planet.SemiMajorAxis;
-            double b = a * Math.Sqrt(1 - Math.Pow(planet.OrbitEccentricity, 2)); // semi-minor axis
-
-            // Convert inclination and longitude of ascending node to radians
-            double inclinationInRadians = planet.Inclination * Mathf.Deg2Rad;
-            double ascendingLongitudeInRadians = planet.AscendingLongitude * Mathf.Deg2Rad;
+            float inclinationRadians = (float) planet.Inclination * Mathf.Deg2Rad;
+            float ascendingNodeRadians = (float) planet.AscendingLongitude * Mathf.Deg2Rad;
+            float periapsisArg = (float) planet.Perihelion * Mathf.Deg2Rad;
+            float ta = planet.TrueAnomaly * Mathf.Deg2Rad;
+            float N = planet.MeanMotion * Mathf.Deg2Rad;
 
             for (var i = 0; i <= 360; i++)
             {
-                float theta = i * Mathf.Deg2Rad; // Convert degree to radian
+                double nu = ta + N * (i / 360.0 * planet.SiderealOrbitPeriod);
 
-                // Calculate position in 3D space
-                Vector3 point = new Vector3(
-                    (float)(a * Math.Cos(theta - ascendingLongitudeInRadians) * Math.Cos(ascendingLongitudeInRadians) - b * Math.Sin(theta - ascendingLongitudeInRadians) * Math.Sin(ascendingLongitudeInRadians) * Math.Cos(inclinationInRadians)) - (float)(a * planet.OrbitEccentricity), 
-                    (float)(a * Math.Cos(theta - ascendingLongitudeInRadians) * Math.Sin(ascendingLongitudeInRadians) + b * Math.Sin(theta - ascendingLongitudeInRadians) * Math.Cos(ascendingLongitudeInRadians) * Math.Cos(inclinationInRadians)), 
-                    (float)(b * Math.Sin(theta - ascendingLongitudeInRadians) * Math.Sin(inclinationInRadians))
-                );
+                // Compute position in the orbital plane
+                double r = planet.SemiMajorAxis * (1 - planet.OrbitEccentricity * planet.OrbitEccentricity) / (1 + planet.OrbitEccentricity * Math.Cos(nu));
+                Vector3d pos = new Vector3d(r * Math.Cos(nu), r * Math.Sin(nu), 0);
+                Vector3 position = new Vector3((float)pos.x, (float)pos.y, (float)pos.z);
 
-                point += planets[0].transform.position;
+                position = Quaternion.Euler(0, 0, periapsisArg) * position;
+                
+                // Rotate to take into account the inclination and the longitude of ascending node
+                position = Quaternion.Euler(0, ascendingNodeRadians, 0) * position;
+                position = Quaternion.Euler(inclinationRadians, 0, 0) * position;
 
-                points[i] = point;
+                position += planets[0].transform.position;
+
+                points[i] = position;
             }
 
             lineRenderer.SetPositions(points);
