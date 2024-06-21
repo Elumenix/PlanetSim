@@ -172,12 +172,12 @@ public class GravityManager : MonoBehaviour
         // Record every xth fixed Update depending on what timescale I need to use for distance
         if (Timer == 0)
         {
-            orbitPositions.positions.Add(planets[9].transform.position);
+            orbitPositions.positions.Add(planets[4].transform.position - planets[3].transform.position);
         }
 
         Timer++;
 
-        if (Timer == 20)
+        if (Timer == 5)
         {
             Timer = 0;
         }
@@ -397,6 +397,6 @@ public class GravityManager : MonoBehaviour
     private void OnApplicationQuit()
     {
         //string json = JsonUtility.ToJson(orbitPositions);
-        //System.IO.File.WriteAllText("Assets/Line2DPaths/NeptuneOrbit.json", json);
+        //System.IO.File.WriteAllText("Assets/Line2DPaths/MoonOrbit.json", json);
     }
 }

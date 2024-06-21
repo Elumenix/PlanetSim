@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,6 +6,9 @@ using UnityEngine.Rendering;
 
 public class OrbitPathVisualizer : MonoBehaviour
 {
+    public GravityManager simulation;
+    private LineRenderer moonRenderer;
+    
     // Start is called before the first frame update
     void Start()
     {
@@ -14,17 +18,43 @@ public class OrbitPathVisualizer : MonoBehaviour
         // This helps prevent the need to do much more math every fixedUpdate, which would cause lag
         // The only big problem is that the lines don't update for Apsidal precession, but most users won't notice that
         
-        CreateNewPath("Assets/Line2DPaths/MercuryOrbit.json");
-        CreateNewPath("Assets/Line2DPaths/VenusOrbit.json");
-        CreateNewPath("Assets/Line2DPaths/EarthOrbit.json");
-        CreateNewPath("Assets/Line2DPaths/MarsOrbit.json");
-        CreateNewPath("Assets/Line2DPaths/JupiterOrbit.json");
-        CreateNewPath("Assets/Line2DPaths/SaturnOrbit.json");
-        CreateNewPath("Assets/Line2DPaths/UranusOrbit.json");
-        CreateNewPath("Assets/Line2DPaths/NeptuneOrbit.json");
+        //CreateNewPath("Assets/Line2DPaths/MercuryOrbit.json");
+        //CreateNewPath("Assets/Line2DPaths/VenusOrbit.json");
+        //CreateNewPath("Assets/Line2DPaths/EarthOrbit.json");
+        //CreateNewPath("Assets/Line2DPaths/MarsOrbit.json");
+        //CreateNewPath("Assets/Line2DPaths/JupiterOrbit.json");
+        //CreateNewPath("Assets/Line2DPaths/SaturnOrbit.json");
+        //CreateNewPath("Assets/Line2DPaths/UranusOrbit.json");
+        //CreateNewPath("Assets/Line2DPaths/NeptuneOrbit.json");
+        moonRenderer = CreateNewPath("Assets/Line2DPaths/MoonOrbit.json");
+        moonRenderer.widthMultiplier = 0.125f;
+        moonRenderer.useWorldSpace = false; // Needs to be relative to earth
+        
+        // Line the moon orbit up with Earth
+        //StartCoroutine(UpdateMoonRing());
+    }
+    
+    // I was having problems with the FixedUpdate method not lining up with the gravityManagers, so I'm using a coroutine
+    /*IEnumerator UpdateMoonRing()
+    {
+        // Wait for the next fixed update before starting the loop
+        yield return new WaitForFixedUpdate();
+
+        while (true)
+        {
+            moonRenderer.gameObject.transform.position = simulation.planets[3].transform.position;
+
+            // Wait for the next fixed update
+            yield return new WaitForFixedUpdate();
+        }
+    }*/
+
+    private void LateUpdate()
+    {
+        moonRenderer.gameObject.transform.position = simulation.planets[3].transform.position;
     }
 
-    private void CreateNewPath(string filePath)
+    private LineRenderer CreateNewPath(string filePath)
     {
         string json = System.IO.File.ReadAllText(filePath);
         OrbitPositions orbitPositions = JsonUtility.FromJson<OrbitPositions>(json);
@@ -33,7 +63,7 @@ public class OrbitPathVisualizer : MonoBehaviour
         LineRenderer lineRenderer = (new GameObject("line")).AddComponent<LineRenderer>();
         lineRenderer.positionCount = 361;
         lineRenderer.widthMultiplier = 20;
-        lineRenderer.numCapVertices = 90;
+        lineRenderer.loop = true;
         lineRenderer.shadowCastingMode = ShadowCastingMode.Off;
         //lineRenderer.sortingOrder = 0; // Not quite sure how this one works yet
         
@@ -46,5 +76,7 @@ public class OrbitPathVisualizer : MonoBehaviour
         {
             lineRenderer.SetPosition(i, orbitPositions.positions[i]);
         }
+
+        return lineRenderer;
     }
 }
