@@ -4,13 +4,17 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Serialization;
 
-//[ExecuteInEditMode]
 public class GravitationalBody : MonoBehaviour
 {
     public Vector3d Position;
     public Vector3d Velocity;
     public double RotationSpeed;
     public double Mass;
+    public double OrbitEccentricity;
+    public double SemiMajorAxis;
+    public double Inclination; // This is on the XY axis
+    public double Perihelion;
+    public double AscendingLongitude;
     public Vector3d Acceleration;
     
     

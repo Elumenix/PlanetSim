@@ -13,6 +13,7 @@ public enum TimeScale
 public class GravityManager : MonoBehaviour
 {
     public List<GravitationalBody> planets;
+    private List<LineRenderer> orbits;
     private double G;
 
     [SerializeField]
@@ -30,6 +31,7 @@ public class GravityManager : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        orbits = new List<LineRenderer>();
         previousTimeScale = TimeScale;
         G = GetGravitationalConstant(TimeScale);
         Time.timeScale = StartingSpeed;
@@ -38,12 +40,31 @@ public class GravityManager : MonoBehaviour
         {
             foreach (GravitationalBody planet in planets)
             {
+                // Initial values that may need to be changed to match the simulation parameters
                 planet.Velocity = ConvertVelocityToTimeScale(planet.Velocity, TimeScale.second, TimeScale);
                 Vector3d temp = new Vector3d(0, 0, planet.RotationSpeed);
                 temp = ConvertVelocityToTimeScale(temp, TimeScale.second, TimeScale);
                 planet.RotationSpeed = temp.z;
             }
         }
+
+        // Create the first
+        foreach (GravitationalBody unused in planets)
+        {
+            // Code to create an orbital path around the sun to the lineRenderer
+            LineRenderer lineRenderer = (new GameObject("line")).AddComponent<LineRenderer>();
+            orbits.Add(lineRenderer);
+            lineRenderer.positionCount = 361;
+            lineRenderer.widthMultiplier = 20;
+            lineRenderer.sortingOrder = 500; // Behind Circle UI
+        }
+
+        CalculateOrbitShapes();
+    }
+
+    private void Update()
+    {
+        CalculateOrbitShapes();
     }
 
     void FixedUpdate()
@@ -197,6 +218,52 @@ public class GravityManager : MonoBehaviour
                     body2.Acceleration += (-force / body2.Mass); // Apply force in opposite direction
                 }
             }
+        }
+    }
+
+    private void CalculateOrbitShapes()
+    {
+        // This code will draw the initial lineRenderers that show the orbits of the planets
+        for (int p = 0; p < planets.Count; p++)
+        {
+            GravitationalBody planet = planets[p];
+            LineRenderer lineRenderer = orbits[p];
+            
+            // Waste of resources
+            if (planet.name is "Sun" or "Moon")
+            {
+                continue;
+            }
+            
+            
+            var points = new Vector3[361];
+
+            
+            double a = planet.SemiMajorAxis;
+            double b = a * Math.Sqrt(1 - Math.Pow(planet.OrbitEccentricity, 2)); // semi-minor axis
+
+            // Convert inclination and longitude of ascending node to radians
+            double inclinationInRadians = planet.Inclination * Mathf.Deg2Rad;
+            double ascendingLongitudeInRadians = planet.AscendingLongitude * Mathf.Deg2Rad;
+
+            for (var i = 0; i <= 360; i++)
+            {
+                float theta = i * Mathf.Deg2Rad; // Convert degree to radian
+
+                // Calculate position in 3D space
+                Vector3 point = new Vector3(
+                    (float)(a * Math.Cos(theta - ascendingLongitudeInRadians) * Math.Cos(ascendingLongitudeInRadians) - b * Math.Sin(theta - ascendingLongitudeInRadians) * Math.Sin(ascendingLongitudeInRadians) * Math.Cos(inclinationInRadians)) - (float)(a * planet.OrbitEccentricity), 
+                    (float)(a * Math.Cos(theta - ascendingLongitudeInRadians) * Math.Sin(ascendingLongitudeInRadians) + b * Math.Sin(theta - ascendingLongitudeInRadians) * Math.Cos(ascendingLongitudeInRadians) * Math.Cos(inclinationInRadians)), 
+                    (float)(b * Math.Sin(theta - ascendingLongitudeInRadians) * Math.Sin(inclinationInRadians))
+                );
+
+                point += planets[0].transform.position;
+
+                points[i] = point;
+            }
+
+            lineRenderer.SetPositions(points);
+            lineRenderer.SetPosition(360, lineRenderer.GetPosition(0)); // loop
         }
     }
     
