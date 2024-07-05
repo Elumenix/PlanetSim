@@ -7,10 +7,13 @@ public class OrbitPathVisualizer : MonoBehaviour
     public GravityManager simulation;
     private LineRenderer moonRenderer;
     private List<LineRenderer> sunBound;
-    
+    public Material orbitMaterial;
+    private Camera _camera;
+
     // Start is called before the first frame update
     void Start()
     {
+        _camera = Camera.main;
         sunBound = new List<LineRenderer>
         {
             // Because I don't want to do a second fast pace simulation in the background to figure out the shape of 
@@ -39,11 +42,37 @@ public class OrbitPathVisualizer : MonoBehaviour
         
         // Line up with Earth
         moonRenderer.gameObject.transform.position = simulation.planets[3].transform.position;
-
-        // Line up with Sun
-        foreach (LineRenderer lineRenderer in sunBound)
+        
+        // Line up with the Sun
+        Vector3 orbitCenter = simulation.planets[0].transform.position;
+        for (int i = 0; i < sunBound.Count; i++)
         {
-            lineRenderer.gameObject.transform.position = simulation.planets[0].transform.position;
+            // Line orbits up with the sun first
+            LineRenderer lineRenderer = sunBound[i];
+            lineRenderer.gameObject.transform.position = orbitCenter;
+    
+            
+            // Then scale the size of orbit lines by how close the camera is to them:
+            // First, get the current planet : this requires a check because the moon is at index 4
+            float averageOrbitRadius = i < 4
+                ? simulation.planets[i + 1].AverageOrbitRadius
+                : simulation.planets[i + 2].AverageOrbitRadius;
+
+
+            // Get a point that Averages the orbit radius from the sun closest to the camera on the xy plane
+            // This isn't exact as it won't follow the exact angle away from the xy plane the planet orbits (which changes)
+            // I could try to actively calculate a more correct point, but that may lead to clear visual morphing
+            // of how wide the line is over time, which is absolutely to be avoided. This is more consistent
+            Vector3 relativeClosestOrbitPoint = (_camera.transform.position - orbitCenter).normalized;
+            relativeClosestOrbitPoint.z = 0;
+            relativeClosestOrbitPoint *= averageOrbitRadius;
+            
+
+            // Calculate the distance from the camera to the closest point on the orbit. Width will be based on this
+            float distanceToCamera = Vector3.Distance(relativeClosestOrbitPoint, _camera.transform.position);
+
+            float desiredWidth = distanceToCamera * .005f;
+            lineRenderer.widthMultiplier = desiredWidth;
         }
     }
 
@@ -59,6 +88,7 @@ public class OrbitPathVisualizer : MonoBehaviour
         lineRenderer.loop = true;
         lineRenderer.useWorldSpace = false; // Needs to be relative to orbiting body
         lineRenderer.shadowCastingMode = ShadowCastingMode.Off;
+        lineRenderer.material = orbitMaterial;
         //lineRenderer.sortingOrder = 0; // Not quite sure how this one works yet
         
         // Get info about the json

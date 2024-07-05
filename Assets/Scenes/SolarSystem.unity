@@ -1284,6 +1284,7 @@ MonoBehaviour:
     x: 0
     y: 0
     z: 0
+  AverageOrbitRadius: 45270
 --- !u!135 &342006491
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -2160,6 +2161,7 @@ MonoBehaviour:
     x: 0
     y: 0
     z: 0
+  AverageOrbitRadius: 2130
 --- !u!135 &531924534
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -2429,6 +2431,7 @@ MonoBehaviour:
     x: 0
     y: 0
     z: 0
+  AverageOrbitRadius: 580.5
 --- !u!135 &595437631
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -2563,6 +2566,7 @@ MonoBehaviour:
     x: 0
     y: 0
     z: 0
+  AverageOrbitRadius: 0
 --- !u!135 &662156988
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -3568,6 +3572,7 @@ MonoBehaviour:
     x: 0
     y: 0
     z: 0
+  AverageOrbitRadius: 14355
 --- !u!135 &1078431436
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -4212,6 +4217,7 @@ MonoBehaviour:
     x: 0
     y: 0
     z: 0
+  AverageOrbitRadius: 28755
 --- !u!135 &1255453457
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -5162,6 +5168,7 @@ MonoBehaviour:
     x: 0
     y: 0
     z: 0
+  AverageOrbitRadius: 1
 --- !u!135 &1465906181
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -5429,6 +5436,7 @@ MonoBehaviour:
     x: 0
     y: 0
     z: 0
+  AverageOrbitRadius: 1084.5
 --- !u!135 &1633547946
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -5782,6 +5790,7 @@ MonoBehaviour:
     x: 0
     y: 0
     z: 0
+  AverageOrbitRadius: 7800
 --- !u!135 &1786259733
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -6457,6 +6466,7 @@ MonoBehaviour:
     x: 0
     y: 0
     z: 0
+  AverageOrbitRadius: 3.855
 --- !u!135 &2009411909
 SphereCollider:
   m_ObjectHideFlags: 0
@@ -6574,6 +6584,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   simulation: {fileID: 1730625373}
+  orbitMaterial: {fileID: 2100000, guid: dd727c37c2ed02845aea457d60150937, type: 2}
 --- !u!4 &2011500920
 Transform:
   m_ObjectHideFlags: 0
