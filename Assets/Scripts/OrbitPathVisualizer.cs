@@ -45,13 +45,20 @@ public class OrbitPathVisualizer : MonoBehaviour
         
         // Line up with the Sun
         Vector3 orbitCenter = simulation.planets[0].transform.position;
+        
         for (int i = 0; i < sunBound.Count; i++)
         {
             // Line orbits up with the sun first
             LineRenderer lineRenderer = sunBound[i];
             lineRenderer.gameObject.transform.position = orbitCenter;
-    
             
+            // Which planet is a bit complex as sun is 0 and moon is 4
+            GravitationalBody curPlanet = simulation.planets[i < 3 ? i + 1 : i + 2];
+            
+            float distance = Vector3.Distance(curPlanet.transform.position, _camera.transform.position);
+            lineRenderer.widthMultiplier = Mathf.Max(distance * 2 / 1000.0f, curPlanet.transform.localScale.x / 1.5f); // Prevent line getting too small
+    
+            /*
             // Then scale the size of orbit lines by how close the camera is to them:
             // First, get the current planet : this requires a check because the moon is at index 4
             float averageOrbitRadius = i < 4
@@ -72,7 +79,7 @@ public class OrbitPathVisualizer : MonoBehaviour
             float distanceToCamera = Vector3.Distance(relativeClosestOrbitPoint, _camera.transform.position);
 
             float desiredWidth = distanceToCamera * .005f;
-            lineRenderer.widthMultiplier = desiredWidth;
+            lineRenderer.widthMultiplier = desiredWidth;*/
         }
     }
 

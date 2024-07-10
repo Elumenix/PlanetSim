@@ -502,7 +502,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -6584,7 +6584,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   simulation: {fileID: 1730625373}
-  orbitMaterial: {fileID: 2100000, guid: dd727c37c2ed02845aea457d60150937, type: 2}
+  orbitMaterial: {fileID: 2100000, guid: f93a4bc4c680d734aba9f4055d4ce222, type: 2}
 --- !u!4 &2011500920
 Transform:
   m_ObjectHideFlags: 0
