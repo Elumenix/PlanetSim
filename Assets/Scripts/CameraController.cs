@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -10,6 +11,7 @@ public class CameraController : MonoBehaviour
     public GravityManager planetManager;
     public GameObject circlePrefab;
     private List<ValueTuple<GameObject, float>> circles; // Value 1: Planet, Value 2: Progress in Lerp function
+    private List<Renderer> circleRenderers;
     public GameObject orientationModel;
 
     // Variables to track camera following a spline
@@ -37,10 +39,16 @@ public class CameraController : MonoBehaviour
     // Initialization
     void Start()
     {
+        // Instantiations done first
+        // Renderers could be gotten at runtime, but that requires multiple getComponent calls, which is expensive
+        circleRenderers = new List<Renderer>();
+        
         // Unity won't let me instantiate transforms on their own so this is my workaround for that
         // It doesn't use much more memory and I won't ever create new game objects for these variables, so it's alright
         startCurvePlanet = new GameObject().AddComponent<GravitationalBody>();
+        startCurvePlanet.name = "SplineBeginning";
         endCurvePlanet = new GameObject().AddComponent<GravitationalBody>();
+        endCurvePlanet.name = "SplineEnding";
 
         _camera = Camera.main;
         
@@ -90,7 +98,9 @@ public class CameraController : MonoBehaviour
                 circle.SetActive(false);
             }
             
+            // Track values needed to alter circles
             circles.Add(new ValueTuple<GameObject, float>(circle, 0));
+            circleRenderers.Add(circles.Last().Item1.GetComponent<Renderer>());
         }
     }
 
@@ -221,21 +231,30 @@ public class CameraController : MonoBehaviour
                             startCurvePlanet.Velocity = target.Velocity;
                             followingCurve = true; // Will start this process next frame
                             lerpAmount = 0;
-                        
+
                             // Rotation will be constant to prevent massive changes as rotation updates
                             // Get rotation value from view of current camera position
                             endCurvePlanet.transform.position = _camera.transform.position; // temp to get rotation
                             endCurvePlanet.Velocity = planetManager.planets[lastIndexHovered].Velocity;
-                            
+
                             // Matches rotation and obliquity to orbit
                             endCurvePlanet.transform.LookAt(planetManager.planets[lastIndexHovered].transform,
                                 planetManager.planets[lastIndexHovered].transform.up);
+
+                            
+                            // If the camera is too close in the Earth Moon system, It will look bad
+                            // The camera essentially can't follow because the velocity of the planets
+                            if (target.name is "Moon" or "Earth" &&
+                                Vector3.Distance(target.transform.position, _camera.transform.position) <= 150f)
+                            {
+                                followingCurve = false;
+                            }
                         }
 
                         // Switch tracked planet and scale movement values relative to it's size
                         target = planetManager.planets[lastIndexHovered];
                         distance = target.transform.localScale.x * 10f;
-                        scrollSpeed = distance / 4;
+                        scrollSpeed = distance / 4.0f;
 
 
                         // If the camera isn't set up to follow the spline it will go to the next planet immediately
@@ -372,7 +391,7 @@ public class CameraController : MonoBehaviour
                         LayerMask.GetMask("Sun"); // Only Sun
 
                     // Essentially, hide circle if the planet is obscured by the sun, (and/or earth/moon in moons case)
-                    if (Physics.Linecast(transform.position, planet.transform.position, layerMask))
+                    if (Physics.Linecast(_camera.transform.position, planet.transform.position, layerMask))
                     {
                         // Will be invisible, continue
                         circles[i].Item1.SetActive(false);
@@ -403,8 +422,14 @@ public class CameraController : MonoBehaviour
             
             // Prevents 3-dimensional z-fighting. Unfortunately needs pretty expensive method calls
             // Draws things closer to the camera first, surprisingly giving a lot more depth
-            Renderer rend = circles[i].Item1.GetComponent<Renderer>();
-            rend.sortingOrder = (500 - (int)((Mathf.Sqrt(dist)) * 1.75f)); // Furthest sqrt: neptune to uranus at ~275
+            circleRenderers[i].sortingOrder = (500 - (int)((Mathf.Sqrt(dist)) * 1.75f)); // Furthest sqrt: neptune to uranus at ~275
+            
+            // Prevents sharing value (Rare). Ternary handles the Moon being between Mars and Earth 
+            if (circleRenderers[i].sortingOrder == circleRenderers[i - (i != 5 ? 1 : 2)].sortingOrder)
+            {
+                circleRenderers[i].sortingOrder += 1;
+            }
+            
 
             // Don't draw the target planet at all, or planets really close to the camera
             if (planet.transform != target.transform &&

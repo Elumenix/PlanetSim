@@ -96,7 +96,7 @@ public class OrbitPathVisualizer : MonoBehaviour
         lineRenderer.useWorldSpace = false; // Needs to be relative to orbiting body
         lineRenderer.shadowCastingMode = ShadowCastingMode.Off;
         lineRenderer.material = orbitMaterial;
-        //lineRenderer.sortingOrder = 0; // Not quite sure how this one works yet
+        lineRenderer.sortingOrder = -1; // makes render before circles, mostly, lineRenderer is unreliable 
         
         // Get info about the json
         int numPoints = orbitPositions.positions.Count;
