@@ -9,11 +9,14 @@ public class OrbitPathVisualizer : MonoBehaviour
     private List<LineRenderer> sunBound;
     public Material orbitMaterial;
     private Camera _camera;
+    private CameraController control;
+    private GravitationalBody previousPlanet;
 
     // Start is called before the first frame update
     void Start()
     {
         _camera = Camera.main;
+        control = _camera!.GetComponent<CameraController>();
         sunBound = new List<LineRenderer>
         {
             // Because I don't want to do a second fast pace simulation in the background to figure out the shape of 
@@ -32,7 +35,7 @@ public class OrbitPathVisualizer : MonoBehaviour
         };
 
         moonRenderer = CreateNewPath("Assets/Line2DPaths/MoonOrbit.json");
-        moonRenderer.widthMultiplier = 0.125f;
+        moonRenderer.widthMultiplier = 0.1f;
     }
 
     private void LateUpdate()
@@ -56,8 +59,40 @@ public class OrbitPathVisualizer : MonoBehaviour
             GravitationalBody curPlanet = simulation.planets[i < 3 ? i + 1 : i + 2];
             
             float distance = Vector3.Distance(curPlanet.transform.position, _camera.transform.position);
-            lineRenderer.widthMultiplier = Mathf.Max(distance * 2 / 1000.0f, curPlanet.transform.localScale.x / 1.5f); // Prevent line getting too small
-    
+            //lineRenderer.widthMultiplier = Mathf.Max(distance * 2 / 1000.0f, curPlanet.transform.localScale.x / 1.5f); // Prevent line getting too small
+
+
+            // Return to normal gradually
+            if (curPlanet == previousPlanet && control.lerpAmount < 1)
+            {
+                lineRenderer.widthMultiplier = Mathf.Lerp(.1f,
+                    lineRenderer.widthMultiplier = (i < 4 ? 5 : 10) + distance / 2000.0f, control.lerpAmount);
+                continue;
+            }
+            
+            if (distance > 2000) // Helps maintain visibility
+            {
+                lineRenderer.widthMultiplier = (i < 4 ? 5 : 10) + distance / 2000.0f;
+            }
+            else
+            {
+                lineRenderer.widthMultiplier = i < 4 ? 5 : 10;
+            }
+            
+            // Shrink width for the planet the camera is targeting
+            if (control.target == curPlanet || curPlanet.name == "Earth" && control.target.name == "Moon")
+            {
+                lineRenderer.widthMultiplier = Mathf.Lerp(lineRenderer.widthMultiplier, .1f, control.lerpAmount);
+            }
+            
+            // Save the last traveled to planet
+            if (control.target == curPlanet && control.lerpAmount >= 1)
+            {
+                previousPlanet = curPlanet;
+            }
+            
+            
+            
             /*
             // Then scale the size of orbit lines by how close the camera is to them:
             // First, get the current planet : this requires a check because the moon is at index 4
@@ -73,7 +108,7 @@ public class OrbitPathVisualizer : MonoBehaviour
             Vector3 relativeClosestOrbitPoint = (_camera.transform.position - orbitCenter).normalized;
             relativeClosestOrbitPoint.z = 0;
             relativeClosestOrbitPoint *= averageOrbitRadius;
-            
+
 
             // Calculate the distance from the camera to the closest point on the orbit. Width will be based on this
             float distanceToCamera = Vector3.Distance(relativeClosestOrbitPoint, _camera.transform.position);
@@ -97,6 +132,23 @@ public class OrbitPathVisualizer : MonoBehaviour
         lineRenderer.shadowCastingMode = ShadowCastingMode.Off;
         lineRenderer.material = orbitMaterial;
         lineRenderer.sortingOrder = -1; // makes render before circles, mostly, lineRenderer is unreliable 
+        
+        
+        string planetName = filePath.Substring(19, filePath.Length - 29); // 19 from start, 10 from end
+        Color lineColor = planetName switch
+        {
+            "Mercury" => new Color(151f / 255, 151f / 255, 159f / 255),
+            "Venus" => new Color(187f / 255, 183f / 255, 171f / 255),
+            "Earth" => new Color(140f / 255, 177f / 255, 222f / 255),
+            "Mars" => new Color(226f / 255, 123f / 255, 88f / 255),
+            "Jupiter" => new Color(200f / 255, 139f / 255, 58f / 255),
+            "Saturn" => new Color(195f / 255, 161f / 255, 113f / 255),
+            "Uranus" => new Color(187f / 255, 225f / 255, 228f / 255),
+            "Neptune" => new Color(49f / 255, 51f / 255, 175f / 255),
+            _ => Color.white
+        };
+
+        lineRenderer.material.color = lineColor;
         
         // Get info about the json
         int numPoints = orbitPositions.positions.Count;

@@ -18,7 +18,7 @@ public class CameraController : MonoBehaviour
     private GravitationalBody startCurvePlanet;
     private GravitationalBody endCurvePlanet;
     private bool followingCurve;
-    private float lerpAmount;
+    protected internal float lerpAmount;
     
     // Controls how responsive mouse rotation is
     public float distance = 10.0f; // distance from target
@@ -61,6 +61,7 @@ public class CameraController : MonoBehaviour
         // Camera control variables for the starting planet are set
         distance = target.transform.localScale.x * 10f;
         scrollSpeed = distance / 4;
+        lerpAmount = 1;
         
         // Match rotation vector of target planet and position accordingly
         Vector3 position = target.transform.rotation * new Vector3(0.0f, 0.0f, -distance) + target.transform.position;
@@ -86,7 +87,7 @@ public class CameraController : MonoBehaviour
                 "Jupiter" => new Color(200f / 255, 139f / 255, 58f / 255),
                 "Saturn" => new Color(195f / 255, 161f / 255, 113f / 255),
                 "Uranus" => new Color(187f / 255, 225f / 255, 228f / 255),
-                "Neptune" => new Color(33f / 255, 35f / 255, 84f / 255),
+                "Neptune" => new Color(49f / 255, 51f / 255, 175f / 255),
                 _ => Color.white
             };
 
@@ -225,12 +226,24 @@ public class CameraController : MonoBehaviour
                         // TODO: add additional check to change or disable spline altogether when option is added
                         if (planetManager.planets[lastIndexHovered] != target)
                         {
+                            // If the camera is too close in the Earth Moon system, It will look bad
+                            // The camera essentially can't follow because the velocity of the planets
+                            if (target.name is "Moon" or "Earth" &&
+                                Vector3.Distance(planetManager.planets[lastIndexHovered].transform.position,
+                                    _camera.transform.position) <= 150f)
+                            {
+                                followingCurve = false;
+                            }
+                            else
+                            {
+                                followingCurve = true; // Will start this process next frame
+                                lerpAmount = 0;
+                            }
+                            
                             // This will be constant, so save this now. Need copies instead of references as the camera moves
                             startCurvePlanet.transform.position = transform.position;
                             startCurvePlanet.transform.rotation = transform.rotation;
                             startCurvePlanet.Velocity = target.Velocity;
-                            followingCurve = true; // Will start this process next frame
-                            lerpAmount = 0;
 
                             // Rotation will be constant to prevent massive changes as rotation updates
                             // Get rotation value from view of current camera position
@@ -240,15 +253,6 @@ public class CameraController : MonoBehaviour
                             // Matches rotation and obliquity to orbit
                             endCurvePlanet.transform.LookAt(planetManager.planets[lastIndexHovered].transform,
                                 planetManager.planets[lastIndexHovered].transform.up);
-
-                            
-                            // If the camera is too close in the Earth Moon system, It will look bad
-                            // The camera essentially can't follow because the velocity of the planets
-                            if (target.name is "Moon" or "Earth" &&
-                                Vector3.Distance(target.transform.position, _camera.transform.position) <= 150f)
-                            {
-                                followingCurve = false;
-                            }
                         }
 
                         // Switch tracked planet and scale movement values relative to it's size
