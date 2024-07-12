@@ -65,7 +65,7 @@ public class CameraController : MonoBehaviour
         
         // Match rotation vector of target planet and position accordingly
         Vector3 position = target.transform.rotation * new Vector3(0.0f, 0.0f, -distance) + target.transform.position;
-        transform.rotation = target.transform.rotation;
+        //transform.rotation = target.transform.rotation;
         transform.position = position;
         orientationModel.transform.rotation = target.transform.rotation;
         
@@ -87,7 +87,7 @@ public class CameraController : MonoBehaviour
                 "Jupiter" => new Color(200f / 255, 139f / 255, 58f / 255),
                 "Saturn" => new Color(195f / 255, 161f / 255, 113f / 255),
                 "Uranus" => new Color(187f / 255, 225f / 255, 228f / 255),
-                "Neptune" => new Color(49f / 255, 51f / 255, 175f / 255),
+                "Neptune" => new Color(80f / 255, 100f / 255, 255f / 255),
                 _ => Color.white
             };
 

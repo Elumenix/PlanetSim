@@ -67,6 +67,10 @@ public class OrbitPathVisualizer : MonoBehaviour
             {
                 lineRenderer.widthMultiplier = Mathf.Lerp(.1f,
                     lineRenderer.widthMultiplier = (i < 4 ? 5 : 10) + distance / 2000.0f, control.lerpAmount);
+                
+                lineRenderer.widthMultiplier +=
+                    (1.0f - control.lerpAmount) * ((distance / curPlanet.transform.localScale.x) / 80);
+                
                 continue;
             }
             
@@ -83,6 +87,10 @@ public class OrbitPathVisualizer : MonoBehaviour
             if (control.target == curPlanet || curPlanet.name == "Earth" && control.target.name == "Moon")
             {
                 lineRenderer.widthMultiplier = Mathf.Lerp(lineRenderer.widthMultiplier, .1f, control.lerpAmount);
+
+
+                lineRenderer.widthMultiplier +=
+                    control.lerpAmount * ((distance / curPlanet.transform.localScale.x) / 80);
             }
             
             // Save the last traveled to planet
@@ -144,7 +152,7 @@ public class OrbitPathVisualizer : MonoBehaviour
             "Jupiter" => new Color(200f / 255, 139f / 255, 58f / 255),
             "Saturn" => new Color(195f / 255, 161f / 255, 113f / 255),
             "Uranus" => new Color(187f / 255, 225f / 255, 228f / 255),
-            "Neptune" => new Color(49f / 255, 51f / 255, 175f / 255),
+            "Neptune" => new Color(80f / 255, 100f / 255, 255f / 255),
             _ => Color.white
         };
 
