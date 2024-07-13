@@ -521,6 +521,7 @@ public class CameraController : MonoBehaviour
             
             default:
                 
+                // Note: Moon/Earth transition is now disabled, so this is only for edge case transitions
                 // Unless the user does weird things with the camera, this is only really for an earth/moon transition
                 // This will give a much better view for nearer object. Essentially rotates much faster at the beginning
                 transform.rotation = Quaternion.Slerp(start.transform.rotation, end.transform.rotation, Mathf.Pow(t, 0.25f));

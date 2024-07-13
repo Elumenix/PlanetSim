@@ -63,7 +63,7 @@ public class TimeManager : MonoBehaviour
             {
                 Time.timeScale--;
             }
-            else
+            else if (Time.timeScale < 100)
             {
                 Time.timeScale++;
             }

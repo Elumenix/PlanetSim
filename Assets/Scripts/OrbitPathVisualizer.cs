@@ -1,5 +1,9 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.Rendering;
 
 public class OrbitPathVisualizer : MonoBehaviour
@@ -24,17 +28,17 @@ public class OrbitPathVisualizer : MonoBehaviour
             // and will instead read it to create a line2D for each planet at the beginning of the program.
             // This helps prevent the need to do much more math every fixedUpdate, which would cause lag
             // The only big problem is that the lines don't update for Apsidal precession, but most users won't notice that
-            CreateNewPath("Assets/Line2DPaths/MercuryOrbit.json"),
-            CreateNewPath("Assets/Line2DPaths/VenusOrbit.json"),
-            CreateNewPath("Assets/Line2DPaths/EarthOrbit.json"),
-            CreateNewPath("Assets/Line2DPaths/MarsOrbit.json"),
-            CreateNewPath("Assets/Line2DPaths/JupiterOrbit.json"),
-            CreateNewPath("Assets/Line2DPaths/SaturnOrbit.json"),
-            CreateNewPath("Assets/Line2DPaths/UranusOrbit.json"),
-            CreateNewPath("Assets/Line2DPaths/NeptuneOrbit.json")
+            CreateNewPath("Line2DPaths/MercuryOrbit.json"),
+            CreateNewPath("Line2DPaths/VenusOrbit.json"),
+            CreateNewPath("Line2DPaths/EarthOrbit.json"),
+            CreateNewPath("Line2DPaths/MarsOrbit.json"),
+            CreateNewPath("Line2DPaths/JupiterOrbit.json"),
+            CreateNewPath("Line2DPaths/SaturnOrbit.json"),
+            CreateNewPath("Line2DPaths/UranusOrbit.json"),
+            CreateNewPath("Line2DPaths/NeptuneOrbit.json")
         };
 
-        moonRenderer = CreateNewPath("Assets/Line2DPaths/MoonOrbit.json");
+        moonRenderer = CreateNewPath("Line2DPaths/MoonOrbit.json");
         moonRenderer.widthMultiplier = 0.1f;
     }
 
@@ -49,6 +53,7 @@ public class OrbitPathVisualizer : MonoBehaviour
         // Line up with the Sun
         Vector3 orbitCenter = simulation.planets[0].transform.position;
         
+        // Adjust scaling and position of each orbit so that they look good to the camera
         for (int i = 0; i < sunBound.Count; i++)
         {
             // Line orbits up with the sun first
@@ -57,12 +62,10 @@ public class OrbitPathVisualizer : MonoBehaviour
             
             // Which planet is a bit complex as sun is 0 and moon is 4
             GravitationalBody curPlanet = simulation.planets[i < 3 ? i + 1 : i + 2];
-            
             float distance = Vector3.Distance(curPlanet.transform.position, _camera.transform.position);
-            //lineRenderer.widthMultiplier = Mathf.Max(distance * 2 / 1000.0f, curPlanet.transform.localScale.x / 1.5f); // Prevent line getting too small
 
-
-            // Return to normal gradually
+            // Special condition for previous orbit while transitioning between planets
+            // Return to normal gradually after switching planets
             if (curPlanet == previousPlanet && control.lerpAmount < 1)
             {
                 lineRenderer.widthMultiplier = Mathf.Lerp(.1f,
@@ -74,6 +77,7 @@ public class OrbitPathVisualizer : MonoBehaviour
                 continue;
             }
             
+            // Condition most planets go through for determining line width
             if (distance > 2000) // Helps maintain visibility
             {
                 lineRenderer.widthMultiplier = (i < 4 ? 5 : 10) + distance / 2000.0f;
@@ -83,6 +87,7 @@ public class OrbitPathVisualizer : MonoBehaviour
                 lineRenderer.widthMultiplier = i < 4 ? 5 : 10;
             }
             
+            // Special condition for the planet the camera is currently focusing on
             // Shrink width for the planet the camera is targeting
             if (control.target == curPlanet || curPlanet.name == "Earth" && control.target.name == "Moon")
             {
@@ -98,39 +103,12 @@ public class OrbitPathVisualizer : MonoBehaviour
             {
                 previousPlanet = curPlanet;
             }
-            
-            
-            
-            /*
-            // Then scale the size of orbit lines by how close the camera is to them:
-            // First, get the current planet : this requires a check because the moon is at index 4
-            float averageOrbitRadius = i < 4
-                ? simulation.planets[i + 1].AverageOrbitRadius
-                : simulation.planets[i + 2].AverageOrbitRadius;
-
-
-            // Get a point that Averages the orbit radius from the sun closest to the camera on the xy plane
-            // This isn't exact as it won't follow the exact angle away from the xy plane the planet orbits (which changes)
-            // I could try to actively calculate a more correct point, but that may lead to clear visual morphing
-            // of how wide the line is over time, which is absolutely to be avoided. This is more consistent
-            Vector3 relativeClosestOrbitPoint = (_camera.transform.position - orbitCenter).normalized;
-            relativeClosestOrbitPoint.z = 0;
-            relativeClosestOrbitPoint *= averageOrbitRadius;
-
-
-            // Calculate the distance from the camera to the closest point on the orbit. Width will be based on this
-            float distanceToCamera = Vector3.Distance(relativeClosestOrbitPoint, _camera.transform.position);
-
-            float desiredWidth = distanceToCamera * .005f;
-            lineRenderer.widthMultiplier = desiredWidth;*/
         }
     }
 
     private LineRenderer CreateNewPath(string filePath)
     {
-        string json = System.IO.File.ReadAllText(filePath);
-        OrbitPositions orbitPositions = JsonUtility.FromJson<OrbitPositions>(json);
-        
+        // We'll start with things that don't require the json yet
         // Create a new object in the scene to hold a line renderer and initialize its values
         LineRenderer lineRenderer = (new GameObject("line")).AddComponent<LineRenderer>();
         lineRenderer.positionCount = 361;
@@ -142,7 +120,7 @@ public class OrbitPathVisualizer : MonoBehaviour
         lineRenderer.sortingOrder = -1; // makes render before circles, mostly, lineRenderer is unreliable 
         
         
-        string planetName = filePath.Substring(19, filePath.Length - 29); // 19 from start, 10 from end
+        string planetName = filePath.Substring(12, filePath.Length - 22); // 12 from start, 10 from end
         Color lineColor = planetName switch
         {
             "Mercury" => new Color(151f / 255, 151f / 255, 159f / 255),
@@ -155,19 +133,61 @@ public class OrbitPathVisualizer : MonoBehaviour
             "Neptune" => new Color(80f / 255, 100f / 255, 255f / 255),
             _ => Color.white
         };
-
         lineRenderer.material.color = lineColor;
         
-        // Get info about the json
-        int numPoints = orbitPositions.positions.Count;
-        lineRenderer.positionCount = numPoints;
+        // Actual File Loading Things Onward
+        
+        // WebGL has more restrictions, so I have to go through streamingAssets
+        string path = Path.Combine(Application.streamingAssetsPath, filePath);
+        string json;
+
+        // Check if this is the Unity editor or a WebGL build
+        if (Application.platform == RuntimePlatform.WebGLPlayer)
+        {
+            // If it's a WebGL build, use a Coroutine to read the file and set positions
+            StartCoroutine(ReadFile(path, result => {
+                json = result;
+                OrbitPositions orbitPositions = JsonUtility.FromJson<OrbitPositions>(json);
+                // Get info about the json
+                int numPoints = orbitPositions.positions.Count;
+                lineRenderer.positionCount = numPoints;
         
 
-        for (int i = 0; i < numPoints; i++)
-        {
-            lineRenderer.SetPosition(i, orbitPositions.positions[i]);
+                for (int i = 0; i < numPoints; i++)
+                {
+                    lineRenderer.SetPosition(i, orbitPositions.positions[i]);
+                }
+            }));
+            
+            // There won't be any data yet when this is returned, but it will be updated when the coroutine finishes
+            return lineRenderer;
         }
+        else
+        {
+            // If it's running in the editor, we can read the file directly
+            json = File.ReadAllText(path);
+            OrbitPositions orbitPositions = JsonUtility.FromJson<OrbitPositions>(json);
+            
+            // Get info about the json
+            int numPoints = orbitPositions.positions.Count;
+            lineRenderer.positionCount = numPoints;
+        
 
-        return lineRenderer;
+            for (int i = 0; i < numPoints; i++)
+            {
+                lineRenderer.SetPosition(i, orbitPositions.positions[i]);
+            }
+
+            return lineRenderer;
+        }
     }
+    
+    // This is necessary as WebGL uses http requests to load files/json in script
+    private IEnumerator ReadFile(string path, Action<string> callback)
+    {
+        UnityWebRequest www = UnityWebRequest.Get(path);
+        yield return www.SendWebRequest();
+        callback(www.downloadHandler.text);
+    }
+
 }

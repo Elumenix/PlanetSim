@@ -26,34 +26,10 @@ public class GravityManager : MonoBehaviour
     private TimeScale previousTimeScale;
     public float StartingSpeed = 1;
     public bool reversed;
-    private OrbitPositions orbitPositions;
-    //private int Timer = 0;
     
     // Start is called before the first frame update
     void Start()
     {
-        orbitPositions = new OrbitPositions();
-        orbitPositions.positions = new List<Vector3>();
-
-
-        /*Vector3 centerPoint = new Vector3(-1.65f, -3.99f, .001f);
-        Vector3 startPoint = new Vector3(19944.21875f, 21725.71875f, -177.56854248046876f);
-        Vector3 endPoint = new Vector3(18406.48828125f, 22950.44140625f, -153.39781188964845f);
-        int numberOfPoints = 48;
-        //double radius = Vector3.Distance(new Vector2(startPoint.x, startPoint.y), new Vector2(centerPoint.x, centerPoint.y));
-
-        // Calculate the angle between the start and end points
-        //double startAngle = Mathf.Atan2(startPoint.y - centerPoint.y, startPoint.x - centerPoint.x);
-        //double endAngle = Mathf.Atan2(endPoint.y - centerPoint.y, endPoint.x - centerPoint.x);
-        //double angleDifference = endAngle - startAngle;
-
-        for (int i = 0; i <= numberOfPoints; i++)
-        {
-            float t = i / (float)(numberOfPoints - 1);
-            Vector3 point = Vector3.Slerp(startPoint - centerPoint, endPoint - centerPoint, t) + centerPoint;
-            orbitPositions.positions.Add(point);
-        }*/
-        
         previousTimeScale = TimeScale;
         G = GetGravitationalConstant(TimeScale);
         Time.timeScale = StartingSpeed;
@@ -187,19 +163,6 @@ public class GravityManager : MonoBehaviour
             body.Velocity = initialVelocities[i] + (1.0 / 6.0) * timeDir * Time.fixedDeltaTime *
                 (k1_accelerations[i] + 2 * k2_accelerations[i] + 2 * k3_accelerations[i] + k4_accelerations[i]);
         }
-
-        // Record every xth fixed Update depending on what timescale I need to use for distance
-        /*if (Timer == 0)
-        {
-            orbitPositions.positions.Add(planets[9].transform.position - planets[0].transform.position);
-        }
-
-        Timer++;
-
-        if (Timer == 20)
-        {
-            Timer = 0;
-        }*/
     }
 
     void CalculateAccelerations()
@@ -411,11 +374,5 @@ public class GravityManager : MonoBehaviour
                 _timeScale = TimeScale.month;
                 break;
         }
-    }
-
-    private void OnApplicationQuit()
-    {
-        string json = JsonUtility.ToJson(orbitPositions);
-        //System.IO.File.WriteAllText("Assets/Line2DPaths/OrbitCorrection.json", json);
     }
 }
