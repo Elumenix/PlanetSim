@@ -11,7 +11,7 @@ public class GravitationalBody : MonoBehaviour
     public double RotationSpeed;
     public double Mass;
     public Vector3d Acceleration;
-    public float AverageOrbitRadius; // Just used for Orbit Line2D calculations
+    //public float AverageOrbitRadius; // Just used for Orbit Line2D calculations
     
     
     void Start()
